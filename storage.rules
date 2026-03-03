@@ -1,0 +1,15 @@
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Only allow access to the user's own directory
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Explicit deny for root level files to force folder structure
+    match /{fileName} {
+      allow read, write: if false; 
+    }
+  }
+}
