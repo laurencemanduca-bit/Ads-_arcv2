@@ -69,14 +69,15 @@
 /* Print Styles for Presentation Export */
 @media print {
   @page {
-    size: landscape;
-    margin: 1cm;
+    size: A4 landscape;
+    margin: 1.2cm 1cm;
   }
 
   body {
     background: white !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    font-size: 11px;
   }
 
   /* Hide UI elements */
@@ -88,46 +89,85 @@
     display: none !important;
   }
 
+  /* Page break between campaign sections */
+  .print-page-break {
+    page-break-before: always !important;
+    padding-top: 0.5cm;
+  }
+
   /* Presentation Mode Styling */
   .pb-20 {
     padding-bottom: 0 !important;
   }
 
-  /* Page breaks for clarity */
-  .space-y-6,
-  .space-y-8 {
-    page-break-inside: auto;
-  }
-
-  h1,
-  h2,
-  h3 {
+  /* Prevent orphaned headings */
+  h1, h2, h3, h4, h5 {
     page-break-after: avoid;
     color: #1a365d !important;
-    /* Indigo-900 like */
   }
 
-  .grid {
-    display: block !important;
-  }
-
-  .grid>div {
-    margin-bottom: 2rem;
-    page-break-inside: avoid;
-  }
-
-  /* Ensure cards look good in print */
+  /* Keep cards together, avoid splitting mid-card */
   .rounded-xl,
   .rounded-2xl {
     border: 1px solid #e2e8f0 !important;
     break-inside: avoid;
+    page-break-inside: avoid;
   }
 
-  /* Fix for dark backgrounds in meta campaign */
+  /* Grids → single column for readability */
+  .grid {
+    display: block !important;
+  }
+
+  .grid > div {
+    margin-bottom: 1.5rem;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Fix for dark gradient backgrounds */
   .bg-gradient-to-br {
     background: #1e3a8a !important;
-    /* Standard blue-900 */
     color: white !important;
+  }
+
+  /* Remove all text clipping — show full text in PDF */
+  .line-clamp-1,
+  .line-clamp-2,
+  .line-clamp-3,
+  .line-clamp-4 {
+    display: block !important;
+    overflow: visible !important;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: unset !important;
+    white-space: normal !important;
+  }
+
+  .truncate {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+
+  /* Ensure max-width cards don't cut content */
+  .max-w-\[400px\] {
+    max-width: 100% !important;
+  }
+
+  /* Fix Facebook ad preview for print */
+  .mx-auto {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Space adjustments */
+  .space-y-6 > * + *,
+  .space-y-8 > * + * {
+    margin-top: 1.2rem !important;
   }
 
   /* Animation removal for print */
@@ -137,5 +177,26 @@
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  /* Ensure whitespace-pre-wrap text wraps correctly */
+  .whitespace-pre-wrap {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+
+  /* Fix backdrop/blur effects that don't print well */
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+  }
+
+  /* Ensure all text is fully visible */
+  * {
+    overflow: visible !important;
+  }
+
+  /* But keep scrollbars hidden */
+  ::-webkit-scrollbar {
+    display: none;
   }
 }

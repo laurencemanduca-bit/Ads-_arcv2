@@ -716,11 +716,54 @@ export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
   
   ${NEGATIVE_CONSTRAINTS}
   
-  COPYWRITING RULES (STRICT CHARACTER LIMITS):
-  - **Headlines**: ABSOLUTE MAXIMUM of 40 characters including spaces. You MUST count characters. Punchy. Benefit-driven.
-  - **Descriptions**: ABSOLUTE MAXIMUM of 30 characters including spaces. You MUST count characters. Keep it brief.
-  - **Primary Text**: Maximum of 125 characters recommended before truncation, but can be longer. Start with a "Pattern Interrupt" question or statement. Use short paragraphs. Use bullet points with emojis.
-  - **Instagram Nuance**: Ensure copy feels native to IG. Mention "Link in Bio" or "Shop Now" context.
+  ELITE COPYWRITING FRAMEWORK (FOLLOW EXACTLY — THIS IS THE MOST IMPORTANT SECTION):
+
+  **HEADLINE** (ABSOLUTE MAX 40 chars — you MUST count every character including spaces):
+  - Names a specific benefit or concrete outcome. Numbers always outperform vague adjectives.
+  - Proven formulas: "[Number] [Result] in [Timeframe]" | "Finally: [Specific Benefit]" | "Stop [Pain]. Get [Gain]." | "Free [High-Value Thing] for [Target]"
+  - ✅ GOOD: "Get More Leads in 48 Hours" (26 chars) | "Finally Debt-Free This Year" (27 chars) | "50% Off Ends Sunday" (19 chars)
+  - ❌ BAD (too vague): "Transform Your Business Today" | "Innovative Solutions For You" | "Take It to the Next Level"
+
+  **DESCRIPTION** (ABSOLUTE MAX 30 chars — count every character):
+  - Reinforce the CTA or add urgency/scarcity. One punchy phrase.
+  - ✅ GOOD: "Free estimate. No pressure." (28) | "Limited spots—book now." (23) | "No contracts. Cancel anytime." (29)
+
+  **PRIMARY TEXT** (The highest-leverage element. Write it like a mini sales letter, not ad copy):
+  Format with blank lines between each paragraph. Total: 150–500 characters. Never one wall of text.
+
+  MANDATORY STRUCTURE — follow this exact order:
+
+  🪝 PARAGRAPH 1 — SCROLL-STOPPING HOOK (1 sentence, max 2):
+  Make them feel seen, shocked, or curious. Choose ONE formula:
+    → Pain mirror: "Still [paying too much / wasting time on / struggling with X] without getting [desired result]?"
+    → Bold claim: "We've helped [specific number] [target audience] [specific result] in [timeframe]."
+    → Counterintuitive: "The reason your [X] isn't working has nothing to do with [what they think]."
+
+  😤 PARAGRAPH 2 — AGITATE THE PAIN (1-2 sentences):
+  Name their exact frustration using their own language. Be visceral and specific. No fluff.
+
+  💡 PARAGRAPH 3 — YOUR SOLUTION (2-3 sentences):
+  What you do + your unique mechanism. Include ONE concrete number or stat (not a range). "We don't guess — we [specific process that makes you different]."
+
+  ⭐ PARAGRAPH 4 — SOCIAL PROOF (1 sentence):
+  One credibility signal: customer count, star rating, award, specific case study result.
+
+  👉 PARAGRAPH 5 — FRICTIONLESS CTA (1-2 sentences):
+  Tell them exactly what to do AND what they get. Make the next step obvious and low-risk.
+  Example: "Click 'Learn More' → fill out our 60-second form → get your custom quote by tomorrow morning."
+
+  EMOJI RULES: Max 2 emojis in entire primary text. Use ✅ for social proof, 🔥 for urgency. NO decorative emoji spam.
+  TONE: Confident expert texting a friend. Short sentences. Active voice. Zero corporate speak.
+
+  **MANDATORY COPY ANGLE DIVERSITY — EACH AD SET MUST USE A DIFFERENT PSYCHOLOGICAL DRIVER**:
+  - Ad Set 1 → PAIN/PROBLEM ANGLE: Open by naming the specific frustration. Dig into it. Offer relief only at the end.
+  - Ad Set 2 → DREAM OUTCOME ANGLE: Open with the vivid after-state. Paint their ideal result first, then show how.
+  - Ad Set 3 → AUTHORITY/PROOF ANGLE: Open with a credential, number, or case study result. Build trust before selling.
+
+  POWER WORDS (weave in naturally, don't stuff): Proven, Guaranteed, Free, Finally, Stop, Warning, Discover, Exclusive, Limited, Save, Secret, Real, Instant, Zero [risk/hassle/contracts].
+  ABSOLUTELY FORBIDDEN PHRASES (instant failure): "game-changer", "seamless experience", "cutting-edge", "take your business to the next level", "in today's landscape", "innovative solution", "leverage synergies", "empower your brand".
+
+  **Instagram Nuance**: End CTA with "Link in bio ↑" or "Tap the link below." Slightly warmer, more personal tone. Shorter sentences.
   
   IMAGE PROMPT RULES:
   - Generative AI prompts must be descriptive enough to create "Instagram-ready" visuals without editing.

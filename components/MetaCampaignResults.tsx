@@ -1,5 +1,6 @@
 
 import React, { useState, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { useReactToPrint } from 'react-to-print';
 import { GeneratedMetaCampaign, MetaAd, BudgetScenario, MetaAdSet } from '../types';
 import { Copy, Check, Facebook, RefreshCw, Layers, Target, Settings, MessageCircle, Wand2, Loader2, Image as ImageIcon, ThumbsUp, Heart, MoreHorizontal, Globe, Share2, MessageSquare, ClipboardList, BarChart3, Calculator, Tag, Box, AlertTriangle, Download, Smartphone, Wallet, Thermometer, CalendarClock, Swords, PieChart, TrendingUp, Users, LayoutDashboard, Database, Key, Sparkles, X } from 'lucide-react';
@@ -214,6 +215,7 @@ const FacebookAdPreview: React.FC<{
 
 const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onUpdate }) => {
     const [activeTab, setActiveTab] = useState<'budget' | 'strategy' | 'creative' | 'setup'>('budget');
+    const [isPrinting, setIsPrinting] = useState(false);
 
     // PDF Export ref and logic
     const componentRef = useRef<HTMLDivElement>(null);
@@ -221,6 +223,11 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
         documentTitle: `Meta_Ads_Presentation_${campaign.campaignName.replace(/\s+/g, '_')}`,
+        onBeforePrint: () => new Promise<void>((resolve) => {
+            flushSync(() => setIsPrinting(true));
+            setTimeout(resolve, 250);
+        }),
+        onAfterPrint: () => setIsPrinting(false),
     });
 
     // AI Edit State
@@ -317,7 +324,7 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
             </div>
 
             {/* BUDGET TAB */}
-            {activeTab === 'budget' && (
+            {(activeTab === 'budget' || isPrinting) && (
                 <div className="space-y-6 animate-fade-in">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Health Score Card */}
@@ -432,8 +439,8 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
             )}
 
             {/* STRATEGY TAB */}
-            {activeTab === 'strategy' && (
-                <div className="space-y-8 animate-fade-in">
+            {(activeTab === 'strategy' || isPrinting) && (
+                <div className="space-y-8 animate-fade-in print-page-break">
                     {/* Performance 5 Score */}
                     {campaign.performance5Score && (
                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -546,8 +553,8 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
             )}
 
             {/* CREATIVE LAB */}
-            {activeTab === 'creative' && (
-                <div className="space-y-8 animate-fade-in">
+            {(activeTab === 'creative' || isPrinting) && (
+                <div className="space-y-8 animate-fade-in print-page-break">
                     {/* Creative Strategy Summary */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -626,8 +633,8 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
             )}
 
             {/* TRACKING & SETUP TAB */}
-            {activeTab === 'setup' && (
-                <div className="space-y-8 animate-fade-in">
+            {(activeTab === 'setup' || isPrinting) && (
+                <div className="space-y-8 animate-fade-in print-page-break">
 
                     {/* GTM / Pixel Section */}
                     <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
