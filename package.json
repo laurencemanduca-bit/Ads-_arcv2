@@ -10,11 +10,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "^19.2.2",
     "@google/genai": "^1.33.0",
-    "react-dom": "^19.2.2",
+    "firebase": "10.13.1",
     "lucide-react": "^0.560.0",
-    "firebase": "10.13.1"
+    "react": "^19.2.2",
+    "react-dom": "^19.2.2",
+    "react-to-print": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

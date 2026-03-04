@@ -2,8 +2,13 @@
 
 /* Custom Animations */
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fade-in-up {
@@ -11,6 +16,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -22,6 +28,7 @@
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -59,12 +66,76 @@
   background: #94a3b8;
 }
 
-/* Print Styles */
+/* Print Styles for Presentation Export */
 @media print {
-  header, button, .no-print {
-    display: none !important;
+  @page {
+    size: landscape;
+    margin: 1cm;
   }
+
   body {
     background: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Hide UI elements */
+  .print\:hidden,
+  header,
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Presentation Mode Styling */
+  .pb-20 {
+    padding-bottom: 0 !important;
+  }
+
+  /* Page breaks for clarity */
+  .space-y-6,
+  .space-y-8 {
+    page-break-inside: auto;
+  }
+
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+    color: #1a365d !important;
+    /* Indigo-900 like */
+  }
+
+  .grid {
+    display: block !important;
+  }
+
+  .grid>div {
+    margin-bottom: 2rem;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure cards look good in print */
+  .rounded-xl,
+  .rounded-2xl {
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid;
+  }
+
+  /* Fix for dark backgrounds in meta campaign */
+  .bg-gradient-to-br {
+    background: #1e3a8a !important;
+    /* Standard blue-900 */
+    color: white !important;
+  }
+
+  /* Animation removal for print */
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-slide-in-right {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

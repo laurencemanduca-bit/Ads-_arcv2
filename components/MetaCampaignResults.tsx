@@ -1,90 +1,91 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { GeneratedMetaCampaign, MetaAd, BudgetScenario, MetaAdSet } from '../types';
 import { Copy, Check, Facebook, RefreshCw, Layers, Target, Settings, MessageCircle, Wand2, Loader2, Image as ImageIcon, ThumbsUp, Heart, MoreHorizontal, Globe, Share2, MessageSquare, ClipboardList, BarChart3, Calculator, Tag, Box, AlertTriangle, Download, Smartphone, Wallet, Thermometer, CalendarClock, Swords, PieChart, TrendingUp, Users, LayoutDashboard, Database, Key, Sparkles, X } from 'lucide-react';
 import { editCampaignWithAI } from '../services/gemini';
 
 interface MetaCampaignResultsProps {
-  campaign: GeneratedMetaCampaign;
-  onUpdate?: (updated: GeneratedMetaCampaign) => void;
+    campaign: GeneratedMetaCampaign;
+    onUpdate?: (updated: GeneratedMetaCampaign) => void;
 }
 
 const CopyButton: React.FC<{ text: string; label?: string; size?: 'sm' | 'xs' }> = ({ text, label, size = 'xs' }) => {
-  const [copied, setCopied] = React.useState(false);
-  const handleCopy = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent parent clicks
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <button 
-        onClick={handleCopy} 
-        className={`flex items-center gap-1.5 transition font-medium rounded-md border shadow-sm ${size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-2 py-1 text-[10px]'} ${copied ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`} 
-        title="Copy to clipboard"
-    >
-      {copied ? <Check className={size === 'sm' ? "w-4 h-4" : "w-3 h-3"} /> : <Copy className={size === 'sm' ? "w-4 h-4" : "w-3 h-3"} />}
-      {label && <span>{label}</span>}
-      {copied && !label && <span>Copied</span>}
-    </button>
-  );
+    const [copied, setCopied] = React.useState(false);
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent parent clicks
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+    return (
+        <button
+            onClick={handleCopy}
+            className={`flex items-center gap-1.5 transition font-medium rounded-md border shadow-sm ${size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-2 py-1 text-[10px]'} ${copied ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}
+            title="Copy to clipboard"
+        >
+            {copied ? <Check className={size === 'sm' ? "w-4 h-4" : "w-3 h-3"} /> : <Copy className={size === 'sm' ? "w-4 h-4" : "w-3 h-3"} />}
+            {label && <span>{label}</span>}
+            {copied && !label && <span>Copied</span>}
+        </button>
+    );
 };
 
 const ReactionBar = () => (
     <div className="flex items-center gap-1">
         <div className="flex -space-x-1">
-             <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center border border-white z-20">
-                 <ThumbsUp className="w-2.5 h-2.5 text-white fill-white" />
-             </div>
-             <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white z-10">
-                 <Heart className="w-2.5 h-2.5 text-white fill-white" />
-             </div>
+            <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center border border-white z-20">
+                <ThumbsUp className="w-2.5 h-2.5 text-white fill-white" />
+            </div>
+            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white z-10">
+                <Heart className="w-2.5 h-2.5 text-white fill-white" />
+            </div>
         </div>
         <span className="text-slate-500 text-xs hover:underline cursor-pointer">2.4K</span>
     </div>
 );
 
 const BudgetScenarioCard: React.FC<{ scenario: BudgetScenario; isRecommended?: boolean }> = ({ scenario, isRecommended }) => (
-  <div className={`p-5 rounded-xl border relative transition-all duration-300 ${isRecommended ? 'bg-blue-50 border-blue-200 shadow-md transform scale-[1.02]' : 'bg-white border-slate-200'}`}>
-     {isRecommended && (
-         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-             Recommended
-         </div>
-     )}
-     <div className="text-center mb-4">
-        <h4 className={`text-lg font-bold mb-1 ${isRecommended ? 'text-blue-900' : 'text-slate-800'}`}>{scenario.label}</h4>
-        <div className="text-2xl font-extrabold text-blue-600">{scenario.budget}<span className="text-sm font-normal text-slate-500">/mo</span></div>
-     </div>
-     
-     <div className="space-y-3 mb-4">
-        <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Est. Clicks</span>
-            <span className="font-semibold text-slate-800">{scenario.expectedClicks}</span>
+    <div className={`p-5 rounded-xl border relative transition-all duration-300 ${isRecommended ? 'bg-blue-50 border-blue-200 shadow-md transform scale-[1.02]' : 'bg-white border-slate-200'}`}>
+        {isRecommended && (
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                Recommended
+            </div>
+        )}
+        <div className="text-center mb-4">
+            <h4 className={`text-lg font-bold mb-1 ${isRecommended ? 'text-blue-900' : 'text-slate-800'}`}>{scenario.label}</h4>
+            <div className="text-2xl font-extrabold text-blue-600">{scenario.budget}<span className="text-sm font-normal text-slate-500">/mo</span></div>
         </div>
-        <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Est. Conversions</span>
-            <span className="font-semibold text-slate-800">{scenario.expectedConversions}</span>
+
+        <div className="space-y-3 mb-4">
+            <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Est. Clicks</span>
+                <span className="font-semibold text-slate-800">{scenario.expectedClicks}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Est. Conversions</span>
+                <span className="font-semibold text-slate-800">{scenario.expectedConversions}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Est. CPA</span>
+                <span className="font-semibold text-slate-800">{scenario.estCpa}</span>
+            </div>
         </div>
-        <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Est. CPA</span>
-            <span className="font-semibold text-slate-800">{scenario.estCpa}</span>
-        </div>
-     </div>
-     <p className="text-xs text-slate-600 text-center italic">{scenario.description}</p>
-  </div>
+        <p className="text-xs text-slate-600 text-center italic">{scenario.description}</p>
+    </div>
 );
 
 const SectionHeader: React.FC<{ icon: React.ReactNode; title: string; count?: number }> = ({ icon, title, count }) => (
-  <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
-    <div className="text-blue-600">{icon}</div>
-    <h3 className="font-bold text-lg text-slate-800">{title}</h3>
-    {count !== undefined && <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{count}</span>}
-  </div>
+    <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
+        <div className="text-blue-600">{icon}</div>
+        <h3 className="font-bold text-lg text-slate-800">{title}</h3>
+        {count !== undefined && <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{count}</span>}
+    </div>
 );
 
-const FacebookAdPreview: React.FC<{ 
-    ad: MetaAd; 
-    businessName: string; 
+const FacebookAdPreview: React.FC<{
+    ad: MetaAd;
+    businessName: string;
     onUpdate: (updatedAd: MetaAd) => void;
 }> = ({ ad, businessName, onUpdate }) => {
     const [showPrompt, setShowPrompt] = useState(false);
@@ -99,7 +100,7 @@ const FacebookAdPreview: React.FC<{
             <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center text-white font-bold">
-                       {businessName.charAt(0)}
+                        {businessName.charAt(0)}
                     </div>
                     <div>
                         <div className="text-sm font-semibold text-slate-900 leading-tight">{businessName}</div>
@@ -111,7 +112,7 @@ const FacebookAdPreview: React.FC<{
 
             {/* Editable Primary Text with Overlay Copy Button */}
             <div className="relative group/text">
-                <textarea 
+                <textarea
                     value={ad.primaryText}
                     onChange={(e) => handleChange('primaryText', e.target.value)}
                     className="w-full px-3 pb-3 text-sm text-slate-800 whitespace-pre-wrap outline-none resize-none border-b border-transparent focus:border-blue-200 focus:bg-slate-50 transition min-h-[80px]"
@@ -136,33 +137,33 @@ const FacebookAdPreview: React.FC<{
             {/* CTA Bar */}
             <div className="bg-slate-50 p-3 border-t border-slate-100 flex justify-between items-center gap-3">
                 <div className="flex-1 min-w-0 space-y-1">
-                   <div className="text-xs text-slate-500 uppercase tracking-wide">example.com</div>
-                   
-                   {/* Headline with Copy */}
-                   <div className="relative group/headline flex items-center">
-                       <input 
-                           value={ad.headline}
-                           onChange={(e) => handleChange('headline', e.target.value)}
-                           className="font-bold text-slate-900 text-sm bg-transparent outline-none w-full placeholder-slate-400 pr-6"
-                           placeholder="Headline"
-                       />
-                       <div className="absolute right-0 opacity-0 group-hover/headline:opacity-100 transition-opacity">
-                           <CopyButton text={ad.headline} />
-                       </div>
-                   </div>
+                    <div className="text-xs text-slate-500 uppercase tracking-wide">example.com</div>
 
-                   {/* Description with Copy */}
-                   <div className="relative group/desc flex items-center">
-                       <input 
-                           value={ad.description}
-                           onChange={(e) => handleChange('description', e.target.value)}
-                           className="text-xs text-slate-500 bg-transparent outline-none w-full placeholder-slate-300 pr-6"
-                           placeholder="Description (Optional)"
-                       />
+                    {/* Headline with Copy */}
+                    <div className="relative group/headline flex items-center">
+                        <input
+                            value={ad.headline}
+                            onChange={(e) => handleChange('headline', e.target.value)}
+                            className="font-bold text-slate-900 text-sm bg-transparent outline-none w-full placeholder-slate-400 pr-6"
+                            placeholder="Headline"
+                        />
+                        <div className="absolute right-0 opacity-0 group-hover/headline:opacity-100 transition-opacity">
+                            <CopyButton text={ad.headline} />
+                        </div>
+                    </div>
+
+                    {/* Description with Copy */}
+                    <div className="relative group/desc flex items-center">
+                        <input
+                            value={ad.description}
+                            onChange={(e) => handleChange('description', e.target.value)}
+                            className="text-xs text-slate-500 bg-transparent outline-none w-full placeholder-slate-300 pr-6"
+                            placeholder="Description (Optional)"
+                        />
                         <div className="absolute right-0 opacity-0 group-hover/desc:opacity-100 transition-opacity">
-                           <CopyButton text={ad.description} />
-                       </div>
-                   </div>
+                            <CopyButton text={ad.description} />
+                        </div>
+                    </div>
                 </div>
                 <button className="bg-slate-200 text-slate-800 px-4 py-1.5 rounded text-sm font-semibold hover:bg-slate-300 transition whitespace-nowrap">
                     {ad.callToAction || 'Learn More'}
@@ -175,8 +176,8 @@ const FacebookAdPreview: React.FC<{
                 <div className="text-xs text-slate-500">42 Comments · 12 Shares</div>
             </div>
 
-             {/* Action Bar */}
-             <div className="px-2 py-1 border-t border-slate-100 flex">
+            {/* Action Bar */}
+            <div className="px-2 py-1 border-t border-slate-100 flex">
                 <button className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-slate-50 rounded text-slate-500 text-sm font-medium">
                     <ThumbsUp className="w-4 h-4" /> Like
                 </button>
@@ -186,17 +187,17 @@ const FacebookAdPreview: React.FC<{
                 <button className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-slate-50 rounded text-slate-500 text-sm font-medium">
                     <Share2 className="w-4 h-4" /> Share
                 </button>
-             </div>
-             
-             {/* Prompt Reveal */}
-             <div className="bg-slate-900 p-3 mt-auto">
-                 <button onClick={()=>setShowPrompt(!showPrompt)} className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-2 hover:text-white transition w-full">
-                    <ImageIcon className="w-3 h-3" /> 
+            </div>
+
+            {/* Prompt Reveal */}
+            <div className="bg-slate-900 p-3 mt-auto">
+                <button onClick={() => setShowPrompt(!showPrompt)} className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-2 hover:text-white transition w-full">
+                    <ImageIcon className="w-3 h-3" />
                     {showPrompt ? "Hide Image Prompt" : "Edit Image Prompt"}
-                 </button>
-                 {showPrompt && (
-                     <div className="mt-2 relative group/prompt">
-                        <textarea 
+                </button>
+                {showPrompt && (
+                    <div className="mt-2 relative group/prompt">
+                        <textarea
                             value={ad.visualDescription}
                             onChange={(e) => handleChange('visualDescription', e.target.value)}
                             className="w-full text-xs text-slate-300 font-mono bg-slate-800 p-2 rounded border border-slate-700 outline-none focus:border-blue-500 h-20"
@@ -204,15 +205,23 @@ const FacebookAdPreview: React.FC<{
                         <div className="absolute bottom-2 right-2 opacity-0 group-hover/prompt:opacity-100 transition-opacity">
                             <CopyButton text={ad.visualDescription} />
                         </div>
-                     </div>
-                 )}
-             </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
 
 const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onUpdate }) => {
     const [activeTab, setActiveTab] = useState<'budget' | 'strategy' | 'creative' | 'setup'>('budget');
+
+    // PDF Export ref and logic
+    const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `Meta_Ads_Presentation_${campaign.campaignName.replace(/\s+/g, '_')}`,
+    });
 
     // AI Edit State
     const [isEditing, setIsEditing] = useState(false);
@@ -262,28 +271,28 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
     };
 
     return (
-        <div className="pb-20 space-y-8 animate-fade-in">
-             {/* Header Section */}
-             <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-                <button 
+        <div className="pb-20 space-y-8 animate-fade-in" ref={componentRef}>
+            {/* Header Section */}
+            <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-xl shadow-sm border border-slate-200 print:hidden">
+                <button
                     onClick={() => setActiveTab('budget')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'budget' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                     <Calculator className="w-4 h-4" /> Economics
                 </button>
-                <button 
+                <button
                     onClick={() => setActiveTab('strategy')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'strategy' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                     <LayoutDashboard className="w-4 h-4" /> Strategy & Funnel
                 </button>
-                <button 
+                <button
                     onClick={() => setActiveTab('creative')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'creative' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                     <ImageIcon className="w-4 h-4" /> Creative Lab
                 </button>
-                <button 
+                <button
                     onClick={() => setActiveTab('setup')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'setup' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
@@ -292,479 +301,485 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
 
                 {/* Actions */}
                 <div className="ml-auto flex items-center gap-2">
-                    <button 
+                    <button
+                        onClick={() => handlePrint()}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-md transition print:hidden"
+                    >
+                        <Download className="w-4 h-4" /> Download PDF
+                    </button>
+                    <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-md transition"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white hover:bg-purple-700 shadow-md transition print:hidden"
                     >
                         <Sparkles className="w-4 h-4" /> AI Edit
                     </button>
                 </div>
-             </div>
+            </div>
 
-             {/* BUDGET TAB */}
-             {activeTab === 'budget' && (
-                 <div className="space-y-6 animate-fade-in">
-                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                         {/* Health Score Card */}
-                         <div className={`p-6 rounded-xl border-2 ${getHealthColor(healthScore.overallScore)} lg:col-span-1`}>
-                             <div className="flex items-center gap-2 mb-2">
-                                 <Thermometer className="w-6 h-6" />
-                                 <h3 className="font-bold text-lg">Budget Health Score</h3>
-                             </div>
-                             <div className="text-5xl font-extrabold mb-2">
-                                 {healthScore.overallScore}<span className="text-xl opacity-60">/100</span>
-                             </div>
-                             <div className="w-full bg-slate-200 rounded-full h-2.5 mb-4">
-                                 <div className={`h-2.5 rounded-full ${getHealthBarColor(healthScore.overallScore)}`} style={{ width: `${healthScore.overallScore}%` }}></div>
-                             </div>
-                             <div className="text-sm font-medium mb-4">{healthScore.rating}</div>
-                             
-                             <div className="space-y-2">
-                                 {healthScore.breakdown?.map((item, i) => (
-                                     <div key={i} className="flex justify-between text-xs">
-                                         <span>{item.component}</span>
-                                         <span className="font-semibold">{item.score}/{item.maxScore}</span>
-                                     </div>
-                                 ))}
-                             </div>
-                         </div>
+            {/* BUDGET TAB */}
+            {activeTab === 'budget' && (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Health Score Card */}
+                        <div className={`p-6 rounded-xl border-2 ${getHealthColor(healthScore.overallScore)} lg:col-span-1`}>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Thermometer className="w-6 h-6" />
+                                <h3 className="font-bold text-lg">Budget Health Score</h3>
+                            </div>
+                            <div className="text-5xl font-extrabold mb-2">
+                                {healthScore.overallScore}<span className="text-xl opacity-60">/100</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-2.5 mb-4">
+                                <div className={`h-2.5 rounded-full ${getHealthBarColor(healthScore.overallScore)}`} style={{ width: `${healthScore.overallScore}%` }}></div>
+                            </div>
+                            <div className="text-sm font-medium mb-4">{healthScore.rating}</div>
 
-                         {/* Recommendation Summary */}
-                         <div className="bg-gradient-to-br from-indigo-900 to-blue-900 text-white rounded-xl p-8 shadow-lg lg:col-span-2">
-                             <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
-                                 <div>
-                                     <div className="flex items-center gap-2 mb-2">
+                            <div className="space-y-2">
+                                {healthScore.breakdown?.map((item, i) => (
+                                    <div key={i} className="flex justify-between text-xs">
+                                        <span>{item.component}</span>
+                                        <span className="font-semibold">{item.score}/{item.maxScore}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Recommendation Summary */}
+                        <div className="bg-gradient-to-br from-indigo-900 to-blue-900 text-white rounded-xl p-8 shadow-lg lg:col-span-2">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
                                         <Wallet className="w-6 h-6 text-green-400" />
                                         <h2 className="text-2xl font-bold">Recommended Budget</h2>
-                                     </div>
-                                     <div className="text-4xl font-extrabold text-white mb-1">
-                                         {recommendation.monthlyBudget}
-                                         <span className="text-lg font-normal text-blue-200">/mo</span>
-                                     </div>
-                                     <p className="text-blue-200 text-sm max-w-lg mt-2 leading-relaxed">
-                                         {recommendation.reasoning}
-                                     </p>
-                                 </div>
-                                 <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm border border-white/10 min-w-[200px]">
-                                     <div className="text-xs uppercase text-blue-300 font-bold mb-2">ROI Projection</div>
-                                     <div className="space-y-1">
-                                         <div className="flex justify-between text-sm">
-                                             <span className="text-blue-200">Est. Revenue</span>
-                                             <span className="font-bold">{roiProjection.estimatedRevenue}</span>
-                                         </div>
-                                         <div className="flex justify-between text-sm">
-                                             <span className="text-blue-200">Est. Profit</span>
-                                             <span className="font-bold text-green-400">{roiProjection.estimatedProfit}</span>
-                                         </div>
-                                         <div className="flex justify-between text-sm pt-2 border-t border-white/10 mt-1">
-                                             <span className="text-blue-200">ROAS</span>
-                                             <span className="font-bold text-yellow-400">{roiProjection.roas}</span>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
+                                    </div>
+                                    <div className="text-4xl font-extrabold text-white mb-1">
+                                        {recommendation.monthlyBudget}
+                                        <span className="text-lg font-normal text-blue-200">/mo</span>
+                                    </div>
+                                    <p className="text-blue-200 text-sm max-w-lg mt-2 leading-relaxed">
+                                        {recommendation.reasoning}
+                                    </p>
+                                </div>
+                                <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm border border-white/10 min-w-[200px]">
+                                    <div className="text-xs uppercase text-blue-300 font-bold mb-2">ROI Projection</div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-blue-200">Est. Revenue</span>
+                                            <span className="font-bold">{roiProjection.estimatedRevenue}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-blue-200">Est. Profit</span>
+                                            <span className="font-bold text-green-400">{roiProjection.estimatedProfit}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm pt-2 border-t border-white/10 mt-1">
+                                            <span className="text-blue-200">ROAS</span>
+                                            <span className="font-bold text-yellow-400">{roiProjection.roas}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                     {/* Scenarios */}
-                     {budgetAnalysis.scenarios && (
-                         <div>
-                             <h3 className="text-lg font-bold text-slate-800 mb-4">Investment Scenarios</h3>
-                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                 {budgetAnalysis.scenarios.map((scenario, i) => (
-                                     <BudgetScenarioCard 
-                                       key={i} 
-                                       scenario={scenario} 
-                                       isRecommended={scenario.label === "Moderate"} 
-                                     />
-                                 ))}
-                             </div>
-                         </div>
-                     )}
+                    {/* Scenarios */}
+                    {budgetAnalysis.scenarios && (
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 mb-4">Investment Scenarios</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {budgetAnalysis.scenarios.map((scenario, i) => (
+                                    <BudgetScenarioCard
+                                        key={i}
+                                        scenario={scenario}
+                                        isRecommended={scenario.label === "Moderate"}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
-                     {/* Benchmarks */}
-                     {budgetAnalysis.benchmarks && budgetAnalysis.maxCpaAnalysis && (
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                 <SectionHeader icon={<TrendingUp />} title="Meta Benchmarks" />
-                                 <div className="grid grid-cols-2 gap-4">
-                                     <div className="bg-slate-50 p-3 rounded-lg text-center">
-                                         <div className="text-xs text-slate-500 mb-1">Avg CPM/CPC</div>
-                                         <div className="font-bold text-slate-800 text-lg">{budgetAnalysis.benchmarks.avgCpc}</div>
-                                     </div>
-                                     <div className="bg-slate-50 p-3 rounded-lg text-center">
-                                         <div className="text-xs text-slate-500 mb-1">Avg Click-to-Lead</div>
-                                         <div className="font-bold text-slate-800 text-lg">{budgetAnalysis.benchmarks.avgCvr}</div>
-                                     </div>
-                                 </div>
-                             </div>
-                             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                 <SectionHeader icon={<Target />} title="CPA Targets" />
-                                 <div className="grid grid-cols-2 gap-4">
-                                     <div className="bg-green-50 p-3 rounded-lg text-center border border-green-100">
-                                         <div className="text-xs text-green-700 mb-1">Target CPA</div>
-                                         <div className="font-bold text-green-800 text-lg">{budgetAnalysis.maxCpaAnalysis.targetCpa}</div>
-                                     </div>
-                                     <div className="bg-red-50 p-3 rounded-lg text-center border border-red-100">
-                                         <div className="text-xs text-red-700 mb-1">Max Break-Even</div>
-                                         <div className="font-bold text-red-800 text-lg">{budgetAnalysis.maxCpaAnalysis.breakEvenCpa}</div>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
-                     )}
-                 </div>
-             )}
+                    {/* Benchmarks */}
+                    {budgetAnalysis.benchmarks && budgetAnalysis.maxCpaAnalysis && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <SectionHeader icon={<TrendingUp />} title="Meta Benchmarks" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-slate-50 p-3 rounded-lg text-center">
+                                        <div className="text-xs text-slate-500 mb-1">Avg CPM/CPC</div>
+                                        <div className="font-bold text-slate-800 text-lg">{budgetAnalysis.benchmarks.avgCpc}</div>
+                                    </div>
+                                    <div className="bg-slate-50 p-3 rounded-lg text-center">
+                                        <div className="text-xs text-slate-500 mb-1">Avg Click-to-Lead</div>
+                                        <div className="font-bold text-slate-800 text-lg">{budgetAnalysis.benchmarks.avgCvr}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <SectionHeader icon={<Target />} title="CPA Targets" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-green-50 p-3 rounded-lg text-center border border-green-100">
+                                        <div className="text-xs text-green-700 mb-1">Target CPA</div>
+                                        <div className="font-bold text-green-800 text-lg">{budgetAnalysis.maxCpaAnalysis.targetCpa}</div>
+                                    </div>
+                                    <div className="bg-red-50 p-3 rounded-lg text-center border border-red-100">
+                                        <div className="text-xs text-red-700 mb-1">Max Break-Even</div>
+                                        <div className="font-bold text-red-800 text-lg">{budgetAnalysis.maxCpaAnalysis.breakEvenCpa}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
-             {/* STRATEGY TAB */}
-             {activeTab === 'strategy' && (
-                 <div className="space-y-8 animate-fade-in">
-                     {/* Performance 5 Score */}
-                     {campaign.performance5Score && (
-                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                             <div className="flex items-center justify-between mb-6">
-                                 <div className="flex items-center gap-3">
-                                     <div className="bg-blue-100 p-2 rounded-lg">
-                                         <BarChart3 className="w-6 h-6 text-blue-600" />
-                                     </div>
-                                     <div>
-                                         <h3 className="font-bold text-lg text-slate-800">Performance 5 Framework</h3>
-                                         <p className="text-sm text-slate-500">Meta's Official Best Practice Score</p>
-                                     </div>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                     <div className="text-3xl font-black text-blue-600">{campaign.performance5Score.overallScore}</div>
-                                     <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">/ 100</div>
-                                 </div>
-                             </div>
-                             
-                             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                 {campaign.performance5Score.breakdown.map((item, i) => (
-                                     <div key={i} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                                         <div className="flex justify-between items-center mb-2">
-                                             <div className="text-[10px] uppercase font-bold text-slate-500 truncate" title={item.pillar}>{item.pillar}</div>
-                                             <div className={`text-xs font-bold ${item.score >= 80 ? 'text-green-600' : item.score >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
-                                                 {item.score}/100
-                                             </div>
-                                         </div>
-                                         <div className="text-xs font-medium text-slate-800 mb-1 truncate" title={item.assessment}>{item.assessment}</div>
-                                         <div className="text-[10px] text-slate-500 leading-tight line-clamp-3" title={item.recommendation}>{item.recommendation}</div>
-                                     </div>
-                                 ))}
-                             </div>
-                         </div>
-                     )}
-
-                     {/* Account Architecture (Visual) */}
-                     {campaign.accountStructure && (
-                         <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
-                             <div className="bg-slate-900 px-6 py-4 border-b border-slate-800">
-                                 <div className="flex items-center gap-3">
-                                     <Layers className="w-5 h-5 text-blue-400" />
-                                     <div>
-                                         <h3 className="font-bold text-white text-lg">Full-Funnel Architecture</h3>
-                                         <p className="text-slate-400 text-xs">2026 Meta Ads Structure (Simplified & Consolidated)</p>
-                                     </div>
-                                 </div>
-                             </div>
-                             <div className="bg-slate-50 p-8">
-                                 <div className="flex flex-col md:flex-row justify-center items-start gap-8 relative">
-                                     {/* Horizontal Connector */}
-                                     <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-1 bg-slate-200 -z-0"></div>
-                                     
-                                     {campaign.accountStructure.campaigns.map((camp, i) => (
-                                         <div key={i} className="flex-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative z-10 w-full hover:border-blue-300 transition-all group">
-                                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                                                 Campaign {i+1}
-                                             </div>
-                                             <h4 className="text-center font-bold text-lg text-slate-800 mt-2 mb-1">{camp.name}</h4>
-                                             <div className="text-center text-xs text-slate-500 font-bold uppercase tracking-wider mb-4 text-blue-600">{camp.budgetSplit} Budget</div>
-                                             <p className="text-sm text-slate-600 text-center leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                                 {camp.purpose}
-                                             </p>
-                                         </div>
-                                     ))}
-                                 </div>
-                                 
-                                 <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 flex items-start gap-4">
-                                     <div className="bg-blue-100 p-2 rounded-full"><MessageCircle className="w-5 h-5 text-blue-700" /></div>
-                                     <div>
-                                         <h4 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-1">Architect's Rationale</h4>
-                                         <p className="text-blue-800 text-sm leading-relaxed">
-                                             "{campaign.accountStructure.rationale}"
-                                         </p>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
-                     )}
-
-                     {/* Ad Set Targeting Grid */}
-                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                         <SectionHeader icon={<Users />} title="Audience Targeting Matrix" />
-                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                             {campaign.adSets.map((set, i) => (
-                                 <div key={i} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition">
-                                     <div className="flex items-center gap-2 mb-3">
-                                         <div className="bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded text-xs">Ad Set {i+1}</div>
-                                         <h4 className="font-bold text-slate-800 truncate">{set.name}</h4>
-                                     </div>
-                                     <div className="space-y-3 text-sm">
-                                         <div>
-                                             <div className="text-[10px] font-bold text-slate-400 uppercase">Audience Type</div>
-                                             <div className="font-medium text-blue-600">{set.targeting.audienceType}</div>
-                                         </div>
-                                         <div>
-                                             <div className="text-[10px] font-bold text-slate-400 uppercase">Details</div>
-                                             <div className="text-slate-700 leading-snug">{set.targeting.details}</div>
-                                         </div>
-                                         <div>
-                                             <div className="text-[10px] font-bold text-slate-400 uppercase">Location & Age</div>
-                                             <div className="text-slate-600">{set.targeting.location} | {set.targeting.age}</div>
-                                         </div>
-                                     </div>
-                                 </div>
-                             ))}
-                         </div>
-                     </div>
-                 </div>
-             )}
-
-             {/* CREATIVE LAB */}
-             {activeTab === 'creative' && (
+            {/* STRATEGY TAB */}
+            {activeTab === 'strategy' && (
                 <div className="space-y-8 animate-fade-in">
-                     {/* Creative Strategy Summary */}
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                             <div className="flex items-center gap-2 mb-4 text-purple-600 font-bold">
-                                 <Target className="w-5 h-5" /> Visual Hooks
-                             </div>
-                             <ul className="space-y-2">
-                                 {campaign.creativeStrategy.visualHooks.map((h, i) => (
-                                     <li key={i} className="text-sm text-slate-600 flex items-start gap-2 justify-between group">
-                                         <div className="flex items-start gap-2">
+                    {/* Performance 5 Score */}
+                    {campaign.performance5Score && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-blue-100 p-2 rounded-lg">
+                                        <BarChart3 className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg text-slate-800">Performance 5 Framework</h3>
+                                        <p className="text-sm text-slate-500">Meta's Official Best Practice Score</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-3xl font-black text-blue-600">{campaign.performance5Score.overallScore}</div>
+                                    <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">/ 100</div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                {campaign.performance5Score.breakdown.map((item, i) => (
+                                    <div key={i} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <div className="text-[10px] uppercase font-bold text-slate-500 truncate" title={item.pillar}>{item.pillar}</div>
+                                            <div className={`text-xs font-bold ${item.score >= 80 ? 'text-green-600' : item.score >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                                {item.score}/100
+                                            </div>
+                                        </div>
+                                        <div className="text-xs font-medium text-slate-800 mb-1 truncate" title={item.assessment}>{item.assessment}</div>
+                                        <div className="text-[10px] text-slate-500 leading-tight line-clamp-3" title={item.recommendation}>{item.recommendation}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Account Architecture (Visual) */}
+                    {campaign.accountStructure && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
+                            <div className="bg-slate-900 px-6 py-4 border-b border-slate-800">
+                                <div className="flex items-center gap-3">
+                                    <Layers className="w-5 h-5 text-blue-400" />
+                                    <div>
+                                        <h3 className="font-bold text-white text-lg">Full-Funnel Architecture</h3>
+                                        <p className="text-slate-400 text-xs">2026 Meta Ads Structure (Simplified & Consolidated)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-8">
+                                <div className="flex flex-col md:flex-row justify-center items-start gap-8 relative">
+                                    {/* Horizontal Connector */}
+                                    <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-1 bg-slate-200 -z-0"></div>
+
+                                    {campaign.accountStructure.campaigns.map((camp, i) => (
+                                        <div key={i} className="flex-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative z-10 w-full hover:border-blue-300 transition-all group">
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                                Campaign {i + 1}
+                                            </div>
+                                            <h4 className="text-center font-bold text-lg text-slate-800 mt-2 mb-1">{camp.name}</h4>
+                                            <div className="text-center text-xs text-slate-500 font-bold uppercase tracking-wider mb-4 text-blue-600">{camp.budgetSplit} Budget</div>
+                                            <p className="text-sm text-slate-600 text-center leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                {camp.purpose}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 flex items-start gap-4">
+                                    <div className="bg-blue-100 p-2 rounded-full"><MessageCircle className="w-5 h-5 text-blue-700" /></div>
+                                    <div>
+                                        <h4 className="font-bold text-blue-900 text-sm uppercase tracking-wide mb-1">Architect's Rationale</h4>
+                                        <p className="text-blue-800 text-sm leading-relaxed">
+                                            "{campaign.accountStructure.rationale}"
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Ad Set Targeting Grid */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                        <SectionHeader icon={<Users />} title="Audience Targeting Matrix" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {campaign.adSets.map((set, i) => (
+                                <div key={i} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded text-xs">Ad Set {i + 1}</div>
+                                        <h4 className="font-bold text-slate-800 truncate">{set.name}</h4>
+                                    </div>
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase">Audience Type</div>
+                                            <div className="font-medium text-blue-600">{set.targeting.audienceType}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase">Details</div>
+                                            <div className="text-slate-700 leading-snug">{set.targeting.details}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase">Location & Age</div>
+                                            <div className="text-slate-600">{set.targeting.location} | {set.targeting.age}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CREATIVE LAB */}
+            {activeTab === 'creative' && (
+                <div className="space-y-8 animate-fade-in">
+                    {/* Creative Strategy Summary */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4 text-purple-600 font-bold">
+                                <Target className="w-5 h-5" /> Visual Hooks
+                            </div>
+                            <ul className="space-y-2">
+                                {campaign.creativeStrategy.visualHooks.map((h, i) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2 justify-between group">
+                                        <div className="flex items-start gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 shrink-0"></div>
                                             {h}
-                                         </div>
-                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <CopyButton text={h} />
-                                         </div>
-                                     </li>
-                                 ))}
-                             </ul>
-                         </div>
-                         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                             <div className="flex items-center gap-2 mb-4 text-blue-600 font-bold">
-                                 <MessageCircle className="w-5 h-5" /> Copy Angles
-                             </div>
-                             <ul className="space-y-2">
-                                 {campaign.creativeStrategy.copyAngles.map((h, i) => (
-                                     <li key={i} className="text-sm text-slate-600 flex items-start gap-2 justify-between group">
-                                         <div className="flex items-start gap-2">
+                                        </div>
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <CopyButton text={h} />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4 text-blue-600 font-bold">
+                                <MessageCircle className="w-5 h-5" /> Copy Angles
+                            </div>
+                            <ul className="space-y-2">
+                                {campaign.creativeStrategy.copyAngles.map((h, i) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2 justify-between group">
+                                        <div className="flex items-start gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0"></div>
                                             {h}
-                                         </div>
-                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <CopyButton text={h} />
-                                         </div>
-                                     </li>
-                                 ))}
-                             </ul>
-                         </div>
-                         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                             <div className="flex items-center gap-2 mb-4 text-green-600 font-bold">
-                                 <Smartphone className="w-5 h-5" /> Format Mix
-                             </div>
-                             <div className="flex flex-wrap gap-2 mb-2">
-                                 {campaign.creativeStrategy.formatSuggestions.map((h, i) => (
-                                     <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded border border-green-100">
-                                         {h}
-                                     </span>
-                                 ))}
-                             </div>
-                             <p className="text-[10px] text-slate-400 italic">Prioritize 9:16 vertical video for maximum scale.</p>
-                         </div>
-                     </div>
+                                        </div>
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <CopyButton text={h} />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4 text-green-600 font-bold">
+                                <Smartphone className="w-5 h-5" /> Format Mix
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {campaign.creativeStrategy.formatSuggestions.map((h, i) => (
+                                    <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded border border-green-100">
+                                        {h}
+                                    </span>
+                                ))}
+                            </div>
+                            <p className="text-[10px] text-slate-400 italic">Prioritize 9:16 vertical video for maximum scale.</p>
+                        </div>
+                    </div>
 
-                     {/* Ad Previews */}
-                     {campaign.adSets.map((adSet, idx) => (
-                         <div key={idx} className="space-y-6">
-                             <div className="flex items-center gap-3">
-                                 <div className="bg-slate-900 text-white px-3 py-1 rounded text-xs font-black uppercase tracking-widest">Ad Set {idx + 1}: {adSet.name}</div>
-                             </div>
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                 {adSet.ads.map((ad, adIdx) => {
-                                     const uniqueId = `${idx}-${adIdx}`;
-                                     return (
-                                         <FacebookAdPreview 
-                                            key={uniqueId} 
-                                            ad={ad} 
+                    {/* Ad Previews */}
+                    {campaign.adSets.map((adSet, idx) => (
+                        <div key={idx} className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-slate-900 text-white px-3 py-1 rounded text-xs font-black uppercase tracking-widest">Ad Set {idx + 1}: {adSet.name}</div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {adSet.ads.map((ad, adIdx) => {
+                                    const uniqueId = `${idx}-${adIdx}`;
+                                    return (
+                                        <FacebookAdPreview
+                                            key={uniqueId}
+                                            ad={ad}
                                             businessName={campaign.businessName}
                                             onUpdate={(updatedAd) => handleUpdateAd(idx, adIdx, updatedAd)}
-                                         />
-                                     );
-                                 })}
-                             </div>
-                         </div>
-                     ))}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-             )}
+            )}
 
-             {/* TRACKING & SETUP TAB */}
-             {activeTab === 'setup' && (
-                 <div className="space-y-8 animate-fade-in">
-                      
-                      {/* GTM / Pixel Section */}
-                      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-                          <div className="bg-[#1877F2] p-6 text-white flex justify-between items-center">
-                              <div className="flex items-center gap-3">
-                                  <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                                      <Tag className="w-6 h-6 text-white" />
-                                  </div>
-                                  <div>
-                                      <h3 className="font-bold text-xl">Meta Pixel & CAPI Implementation</h3>
-                                      <p className="text-blue-100 text-sm">Essential for iOS14+ Signal Resilience</p>
-                                  </div>
-                              </div>
-                          </div>
+            {/* TRACKING & SETUP TAB */}
+            {activeTab === 'setup' && (
+                <div className="space-y-8 animate-fade-in">
 
-                          <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
-                              {/* Left: Events */}
-                              <div className="lg:col-span-1 space-y-8">
-                                  <div>
-                                      <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">
-                                          Events to Track
-                                      </h4>
-                                      <div className="space-y-3">
-                                          {campaign.trackingSetup.standardEvents.map((event, i) => (
-                                              <div key={i} className="flex items-start gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                                  <Target className="w-4 h-4 text-[#1877F2] mt-1 shrink-0" />
-                                                  <div>
-                                                      <div className="text-sm font-bold text-slate-800">{event}</div>
-                                                      <div className="text-xs text-slate-500">Standard Event</div>
-                                                  </div>
-                                              </div>
-                                          ))}
-                                      </div>
-                                  </div>
-                                  <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                                      <div className="flex items-center gap-2 mb-2 text-orange-700 font-bold text-sm">
-                                          <Database className="w-4 h-4" /> Conversions API (CAPI)
-                                      </div>
-                                      <p className="text-xs text-orange-800 leading-relaxed mb-2">
-                                          Server-side tracking is mandatory.
-                                      </p>
-                                      {campaign.trackingSetup.capiInstructions && (
-                                          <div className="text-xs text-orange-900 font-medium">
-                                              {campaign.trackingSetup.capiInstructions[0]}
-                                          </div>
-                                      )}
-                                  </div>
-                              </div>
+                    {/* GTM / Pixel Section */}
+                    <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                        <div className="bg-[#1877F2] p-6 text-white flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                    <Tag className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-xl">Meta Pixel & CAPI Implementation</h3>
+                                    <p className="text-blue-100 text-sm">Essential for iOS14+ Signal Resilience</p>
+                                </div>
+                            </div>
+                        </div>
 
-                              {/* Right: Steps */}
-                              <div className="lg:col-span-2">
-                                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">
-                                      Implementation Steps
-                                  </h4>
-                                  
-                                  <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:h-full before:w-0.5 before:bg-slate-100">
-                                      {/* Combine Pixel, GTM, and CAPI steps intelligently or display primary Pixel steps */}
-                                      {campaign.trackingSetup.gtmInstructions.map((step, i) => {
-                                          const match = step.match(/^(\d+)\.\s*(.+?)(\n|$|:)/);
-                                          const stepNum = match ? match[1] : i + 1;
-                                          const title = match ? match[2] : "Setup Step";
-                                          const content = match ? step.substring(match[0].length) : step;
+                        <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
+                            {/* Left: Events */}
+                            <div className="lg:col-span-1 space-y-8">
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">
+                                        Events to Track
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {campaign.trackingSetup.standardEvents.map((event, i) => (
+                                            <div key={i} className="flex items-start gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                <Target className="w-4 h-4 text-[#1877F2] mt-1 shrink-0" />
+                                                <div>
+                                                    <div className="text-sm font-bold text-slate-800">{event}</div>
+                                                    <div className="text-xs text-slate-500">Standard Event</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                                    <div className="flex items-center gap-2 mb-2 text-orange-700 font-bold text-sm">
+                                        <Database className="w-4 h-4" /> Conversions API (CAPI)
+                                    </div>
+                                    <p className="text-xs text-orange-800 leading-relaxed mb-2">
+                                        Server-side tracking is mandatory.
+                                    </p>
+                                    {campaign.trackingSetup.capiInstructions && (
+                                        <div className="text-xs text-orange-900 font-medium">
+                                            {campaign.trackingSetup.capiInstructions[0]}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                                          return (
-                                              <div key={i} className="relative pl-12">
-                                                  <div className="absolute left-0 top-0 w-10 h-10 rounded-full bg-white border-2 border-[#1877F2] text-[#1877F2] font-bold flex items-center justify-center z-10 shadow-sm">
-                                                      {stepNum}
-                                                  </div>
-                                                  <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 hover:border-blue-200 transition-colors">
-                                                      <h5 className="font-bold text-slate-900 mb-2">{title}</h5>
-                                                      <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap font-medium">
-                                                          {content || step}
-                                                      </div>
-                                                  </div>
-                                              </div>
-                                          );
-                                      })}
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
+                            {/* Right: Steps */}
+                            <div className="lg:col-span-2">
+                                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">
+                                    Implementation Steps
+                                </h4>
 
-                      {/* Domain & Optimization */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                              <SectionHeader icon={<Key />} title="Domain Verification" />
-                              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm text-slate-700 leading-relaxed">
-                                  {campaign.trackingSetup.domainVerification}
-                              </div>
-                          </div>
-                          
-                          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                              <SectionHeader icon={<BarChart3 />} title="Scaling Signals" />
-                              <div className="flex flex-wrap gap-2">
-                                  {campaign.optimization.scalingMetrics.map((m, i) => (
-                                      <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-100 flex items-center gap-2">
-                                          <TrendingUp className="w-3 h-3" /> {m}
-                                      </span>
-                                  ))}
-                              </div>
-                              <div className="mt-4 bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
-                                  <span className="font-bold uppercase">Testing Plan:</span> {campaign.optimization.testingPlan}
-                              </div>
-                          </div>
-                      </div>
-                 </div>
-             )}
+                                <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:h-full before:w-0.5 before:bg-slate-100">
+                                    {/* Combine Pixel, GTM, and CAPI steps intelligently or display primary Pixel steps */}
+                                    {campaign.trackingSetup.gtmInstructions.map((step, i) => {
+                                        const match = step.match(/^(\d+)\.\s*(.+?)(\n|$|:)/);
+                                        const stepNum = match ? match[1] : i + 1;
+                                        const title = match ? match[2] : "Setup Step";
+                                        const content = match ? step.substring(match[0].length) : step;
 
-             {/* AI Edit Modal */}
-             {isEditing && (
-                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setIsEditing(false)}></div>
-                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-fade-in-up">
-                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-purple-50">
-                             <h3 className="font-bold text-lg text-purple-900 flex items-center gap-2">
-                                 <Sparkles className="w-5 h-5 text-purple-600" /> Edit Campaign with AI
-                             </h3>
-                             <button onClick={() => setIsEditing(false)} className="p-1 rounded-full hover:bg-purple-200 transition text-purple-600">
-                                 <X className="w-5 h-5" />
-                             </button>
-                         </div>
-                         <div className="p-6">
-                             <p className="text-sm text-slate-600 mb-4">
-                                 Describe what you want to change in this campaign. The AI will apply the edits directly to the data.
-                             </p>
-                             <textarea 
-                                 className="w-full h-32 p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 outline-none resize-none mb-4 text-sm"
-                                 placeholder="e.g. 'Make the ad copy more aggressive', 'Change the target audience to focus on older demographics', 'Increase the budget by 20%'"
-                                 value={editPrompt}
-                                 onChange={(e) => setEditPrompt(e.target.value)}
-                                 autoFocus
-                             />
-                             <div className="flex justify-end gap-3">
-                                 <button 
-                                     onClick={() => setIsEditing(false)}
-                                     className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 transition"
-                                 >
-                                     Cancel
-                                 </button>
-                                 <button 
-                                     onClick={handleAIEdit}
-                                     disabled={isApplyingEdit || !editPrompt.trim()}
-                                     className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-md hover:bg-purple-700 transition disabled:opacity-50"
-                                 >
-                                     {isApplyingEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                                     {isApplyingEdit ? 'Applying...' : 'Apply Edit'}
-                                 </button>
-                             </div>
-                         </div>
-                     </div>
-                 </div>
-             )}
+                                        return (
+                                            <div key={i} className="relative pl-12">
+                                                <div className="absolute left-0 top-0 w-10 h-10 rounded-full bg-white border-2 border-[#1877F2] text-[#1877F2] font-bold flex items-center justify-center z-10 shadow-sm">
+                                                    {stepNum}
+                                                </div>
+                                                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 hover:border-blue-200 transition-colors">
+                                                    <h5 className="font-bold text-slate-900 mb-2">{title}</h5>
+                                                    <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap font-medium">
+                                                        {content || step}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Domain & Optimization */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <SectionHeader icon={<Key />} title="Domain Verification" />
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm text-slate-700 leading-relaxed">
+                                {campaign.trackingSetup.domainVerification}
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <SectionHeader icon={<BarChart3 />} title="Scaling Signals" />
+                            <div className="flex flex-wrap gap-2">
+                                {campaign.optimization.scalingMetrics.map((m, i) => (
+                                    <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-100 flex items-center gap-2">
+                                        <TrendingUp className="w-3 h-3" /> {m}
+                                    </span>
+                                ))}
+                            </div>
+                            <div className="mt-4 bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
+                                <span className="font-bold uppercase">Testing Plan:</span> {campaign.optimization.testingPlan}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* AI Edit Modal */}
+            {isEditing && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setIsEditing(false)}></div>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-fade-in-up">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-purple-50">
+                            <h3 className="font-bold text-lg text-purple-900 flex items-center gap-2">
+                                <Sparkles className="w-5 h-5 text-purple-600" /> Edit Campaign with AI
+                            </h3>
+                            <button onClick={() => setIsEditing(false)} className="p-1 rounded-full hover:bg-purple-200 transition text-purple-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-sm text-slate-600 mb-4">
+                                Describe what you want to change in this campaign. The AI will apply the edits directly to the data.
+                            </p>
+                            <textarea
+                                className="w-full h-32 p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 outline-none resize-none mb-4 text-sm"
+                                placeholder="e.g. 'Make the ad copy more aggressive', 'Change the target audience to focus on older demographics', 'Increase the budget by 20%'"
+                                value={editPrompt}
+                                onChange={(e) => setEditPrompt(e.target.value)}
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => setIsEditing(false)}
+                                    className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAIEdit}
+                                    disabled={isApplyingEdit || !editPrompt.trim()}
+                                    className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-md hover:bg-purple-700 transition disabled:opacity-50"
+                                >
+                                    {isApplyingEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                    {isApplyingEdit ? 'Applying...' : 'Apply Edit'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
