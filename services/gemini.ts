@@ -531,13 +531,13 @@ export const generateCampaign = async (data: UserInput): Promise<Omit<GeneratedC
   `;
 
   const GOOGLE_ADS_COPY_MASTERY = `
-  RSA COPYWRITING RULES (STRICT):
-  1. **Headlines (30 chars)**: 
+  RSA COPYWRITING RULES (STRICT CHARACTER LIMITS):
+  1. **Headlines**: ABSOLUTE MAXIMUM of 30 characters including spaces. You MUST count characters. Keep them short.
      - NO generic phrases like "Best Service". 
-     - MUST use: Dynamic Keyword Insertion syntax {KeyWord:Default} where appropriate.
+     - MUST use: Dynamic Keyword Insertion syntax {KeyWord:Default} where appropriate (count default text length).
      - MUST include 1 "Pattern Interrupt" headline (e.g., "Stop Overpaying for X").
      - MUST include 1 Social Proof headline (e.g., "Trusted by 500+ locals").
-  2. **Descriptions (90 chars)**:
+  2. **Descriptions**: ABSOLUTE MAXIMUM of 90 characters including spaces. You MUST count characters.
      - Focus on the "Micro-Moment": What is the user feeling *right now*?
      - End with a clear, low-friction CTA (e.g., "Get a Quote in 2 Min").
      - Avoid repetition.
@@ -716,9 +716,10 @@ export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
   
   ${NEGATIVE_CONSTRAINTS}
   
-  COPYWRITING RULES:
-  - **Headlines**: Must be under 40 characters. Punchy. Benefit-driven.
-  - **Primary Text**: Start with a "Pattern Interrupt" question or statement. Use short paragraphs. Use bullet points with emojis.
+  COPYWRITING RULES (STRICT CHARACTER LIMITS):
+  - **Headlines**: ABSOLUTE MAXIMUM of 40 characters including spaces. You MUST count characters. Punchy. Benefit-driven.
+  - **Descriptions**: ABSOLUTE MAXIMUM of 30 characters including spaces. You MUST count characters. Keep it brief.
+  - **Primary Text**: Maximum of 125 characters recommended before truncation, but can be longer. Start with a "Pattern Interrupt" question or statement. Use short paragraphs. Use bullet points with emojis.
   - **Instagram Nuance**: Ensure copy feels native to IG. Mention "Link in Bio" or "Shop Now" context.
   
   IMAGE PROMPT RULES:
