@@ -231,6 +231,245 @@ export const analyzeDiscoveryNotes = async (notes: string): Promise<Partial<User
   }
 }
 
+// Modified Schema with looser descriptions to allow polymorphism
+export const campaignSchema: any = {
+  type: Type.OBJECT,
+  properties: {
+    budgetAnalysis: {
+      type: Type.OBJECT,
+      properties: {
+        benchmarks: { type: Type.OBJECT, properties: { avgCpc: { type: Type.STRING, description: "Avg Cost Per Action (CPC, CPV, or CPA)" }, avgCvr: { type: Type.STRING } }, required: ["avgCpc", "avgCvr"] },
+        maxCpaAnalysis: { type: Type.OBJECT, properties: { breakEvenCpa: { type: Type.STRING }, targetCpa: { type: Type.STRING } }, required: ["breakEvenCpa", "targetCpa"] },
+        scenarios: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              label: { type: Type.STRING },
+              budget: { type: Type.STRING },
+              expectedClicks: { type: Type.STRING, description: "Clicks, Views, or Interactions" },
+              expectedConversions: { type: Type.STRING },
+              estCpa: { type: Type.STRING },
+              timeline: { type: Type.STRING },
+              description: { type: Type.STRING }
+            },
+            required: ["label", "budget", "expectedClicks", "expectedConversions", "estCpa", "timeline", "description"]
+          }
+        },
+        roiProjection: { type: Type.OBJECT, properties: { monthlyAdSpend: { type: Type.STRING }, estimatedRevenue: { type: Type.STRING }, estimatedProfit: { type: Type.STRING }, roas: { type: Type.STRING } }, required: ["monthlyAdSpend", "estimatedRevenue", "estimatedProfit", "roas"] },
+        recommendation: { type: Type.OBJECT, properties: { monthlyBudget: { type: Type.STRING }, dailyBudget: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["monthlyBudget", "dailyBudget", "reasoning"] },
+        seasonalAnalysis: { type: Type.OBJECT, properties: { adjustments: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { month: { type: Type.STRING }, adjustment: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["month", "adjustment", "amount", "reasoning"] } }, currentMonthMultiplier: { type: Type.STRING } }, required: ["adjustments", "currentMonthMultiplier"] },
+        competitorSpendAnalysis: { type: Type.OBJECT, properties: { estimatedSpendLow: { type: Type.STRING }, estimatedSpendHigh: { type: Type.STRING }, marketPosition: { type: Type.STRING }, strategyRecommendation: { type: Type.STRING } }, required: ["estimatedSpendLow", "estimatedSpendHigh", "marketPosition", "strategyRecommendation"] },
+        allocationBreakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { category: { type: Type.STRING }, percentage: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["category", "percentage", "amount", "reasoning"] } },
+        healthScore: { type: Type.OBJECT, properties: { overallScore: { type: Type.NUMBER }, rating: { type: Type.STRING }, breakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { component: { type: Type.STRING }, score: { type: Type.NUMBER }, maxScore: { type: Type.NUMBER }, assessment: { type: Type.STRING } }, required: ["component", "score", "maxScore", "assessment"] } }, strengths: { type: Type.ARRAY, items: { type: Type.STRING } }, risks: { type: Type.ARRAY, items: { type: Type.STRING } }, recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }, confidenceLevel: { type: Type.STRING } }, required: ["overallScore", "rating", "breakdown", "strengths", "risks", "recommendations", "confidenceLevel"] }
+      },
+      required: ["benchmarks", "maxCpaAnalysis", "scenarios", "roiProjection", "recommendation", "seasonalAnalysis", "competitorSpendAnalysis", "allocationBreakdown", "healthScore"]
+    },
+    strategy: { type: Type.OBJECT, properties: { campaignType: { type: Type.STRING }, objective: { type: Type.STRING }, biddingStrategy: { type: Type.STRING }, biddingReasoning: { type: Type.STRING }, budgetAllocation: { type: Type.STRING }, audienceSegments: { type: Type.ARRAY, items: { type: Type.STRING } }, demographicTargeting: { type: Type.STRING }, locationStrategy: { type: Type.STRING }, adSchedule: { type: Type.STRING } }, required: ["campaignType", "objective", "biddingStrategy", "budgetAllocation", "audienceSegments", "locationStrategy"] },
+    structure: { type: Type.OBJECT, properties: { diagram: { type: Type.STRING }, networks: { type: Type.ARRAY, items: { type: Type.STRING } }, settings: { type: Type.OBJECT, properties: { languages: { type: Type.STRING }, adRotation: { type: Type.STRING }, startDate: { type: Type.STRING }, urlOptions: { type: Type.STRING } }, required: ["languages", "adRotation"] } }, required: ["diagram", "settings"] },
+    adGroups: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          theme: { type: Type.STRING },
+          targetCpc: { type: Type.STRING },
+          individualBidStrategy: { type: Type.STRING },
+          keywords: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                term: { type: Type.STRING },
+                matchType: { type: Type.STRING, description: "Broad, Phrase, Exact, OR 'Signal', 'Topic' for non-search types." },
+                intent: { type: Type.STRING, description: "High, Medium, or Low" },
+                searchVolume: { type: Type.STRING },
+                avgCpc: { type: Type.STRING }
+              },
+              required: ["term", "matchType", "intent", "searchVolume", "avgCpc"]
+            }
+          },
+          negativeKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+          ads: {
+            type: Type.ARRAY,
+            items: { type: Type.OBJECT, properties: { headlines: { type: Type.ARRAY, items: { type: Type.STRING } }, descriptions: { type: Type.ARRAY, items: { type: Type.STRING } }, paths: { type: Type.ARRAY, items: { type: Type.STRING } }, }, required: ["headlines", "descriptions", "paths"] }
+          }
+        },
+        required: ["name", "theme", "targetCpc", "individualBidStrategy", "keywords", "ads"]
+      }
+    },
+    assets: {
+      type: Type.OBJECT, properties: {
+        sitelinks: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { text: { type: Type.STRING }, desc1: { type: Type.STRING }, desc2: { type: Type.STRING }, purpose: { type: Type.STRING } }, required: ["text", "desc1", "desc2"] } }, callouts: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { text: { type: Type.STRING } }, required: ["text"] } }, snippets: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { header: { type: Type.STRING }, values: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["header", "values"] } }, imageIdeas: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { description: { type: Type.STRING }, style: { type: Type.STRING }, ratio: { type: Type.STRING } }, required: ["description", "style"] } }, callAsset: { type: Type.STRING }, promotion: { type: Type.OBJECT, properties: { occasion: { type: Type.STRING }, details: { type: Type.STRING } } },
+        priceAssets: { type: Type.OBJECT, properties: { header: { type: Type.STRING }, items: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, price: { type: Type.STRING }, description: { type: Type.STRING } }, required: ["name", "price"] } } }, required: ["header", "items"] },
+        leadForm: { type: Type.OBJECT, properties: { headline: { type: Type.STRING }, description: { type: Type.STRING }, requiredFields: { type: Type.ARRAY, items: { type: Type.STRING } }, ctaType: { type: Type.STRING } }, required: ["headline", "requiredFields"] }
+      }, required: ["sitelinks", "callouts", "snippets", "imageIdeas"]
+    },
+    conversionTracking: { type: Type.OBJECT, properties: { primaryActions: { type: Type.ARRAY, items: { type: Type.STRING } }, secondaryActions: { type: Type.ARRAY, items: { type: Type.STRING } }, setupInstructions: { type: Type.STRING }, gtmInstructions: { type: Type.ARRAY, items: { type: Type.STRING } }, eventSnippet: { type: Type.STRING }, enhancedConversions: { type: Type.STRING }, attributionModel: { type: Type.STRING } }, required: ["primaryActions", "setupInstructions", "gtmInstructions", "eventSnippet", "enhancedConversions", "attributionModel"] },
+    landingPage: { type: Type.OBJECT, properties: { headlineRecommendation: { type: Type.STRING }, contentSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } }, speedOptimization: { type: Type.STRING }, mobileChecklist: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["headlineRecommendation", "contentSuggestions"] },
+    optimization: { type: Type.OBJECT, properties: { launchPhase: { type: Type.STRING }, learningPhase: { type: Type.STRING }, scalingPhase: { type: Type.STRING }, keyMetrics: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["launchPhase", "learningPhase", "scalingPhase"] },
+    competitorAnalysis: { type: Type.OBJECT, properties: { missingKeywords: { type: Type.ARRAY, items: { type: Type.STRING } }, messagingGaps: { type: Type.ARRAY, items: { type: Type.STRING } }, differentiationStrategy: { type: Type.STRING }, citations: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { source: { type: Type.STRING }, url: { type: Type.STRING } }, required: ["source", "url"] } } }, required: ["messagingGaps", "differentiationStrategy", "citations"] }
+  },
+  required: ["budgetAnalysis", "strategy", "structure", "adGroups", "assets", "conversionTracking", "landingPage", "optimization", "competitorAnalysis"]
+};
+
+export const metaCampaignSchema: any = {
+  type: Type.OBJECT,
+  properties: {
+    campaignName: { type: Type.STRING },
+    objective: { type: Type.STRING },
+    specialAdCategories: { type: Type.STRING },
+    buyingType: { type: Type.STRING },
+    performance5Score: {
+      type: Type.OBJECT,
+      properties: {
+        overallScore: { type: Type.NUMBER },
+        breakdown: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              pillar: { type: Type.STRING },
+              score: { type: Type.NUMBER },
+              assessment: { type: Type.STRING },
+              recommendation: { type: Type.STRING }
+            },
+            required: ["pillar", "score", "assessment", "recommendation"]
+          }
+        }
+      },
+      required: ["overallScore", "breakdown"]
+    },
+    budgetAnalysis: {
+      type: Type.OBJECT,
+      properties: {
+        benchmarks: { type: Type.OBJECT, properties: { avgCpc: { type: Type.STRING }, avgCvr: { type: Type.STRING } }, required: ["avgCpc", "avgCvr"] },
+        maxCpaAnalysis: { type: Type.OBJECT, properties: { breakEvenCpa: { type: Type.STRING }, targetCpa: { type: Type.STRING } }, required: ["breakEvenCpa", "targetCpa"] },
+        scenarios: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              label: { type: Type.STRING },
+              budget: { type: Type.STRING },
+              expectedClicks: { type: Type.STRING },
+              expectedConversions: { type: Type.STRING },
+              estCpa: { type: Type.STRING },
+              timeline: { type: Type.STRING },
+              description: { type: Type.STRING }
+            },
+            required: ["label", "budget", "expectedClicks", "expectedConversions", "estCpa", "timeline", "description"]
+          }
+        },
+        roiProjection: { type: Type.OBJECT, properties: { monthlyAdSpend: { type: Type.STRING }, estimatedRevenue: { type: Type.STRING }, estimatedProfit: { type: Type.STRING }, roas: { type: Type.STRING } }, required: ["monthlyAdSpend", "estimatedRevenue", "estimatedProfit", "roas"] },
+        recommendation: { type: Type.OBJECT, properties: { monthlyBudget: { type: Type.STRING }, dailyBudget: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["monthlyBudget", "dailyBudget", "reasoning"] },
+        seasonalAnalysis: { type: Type.OBJECT, properties: { adjustments: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { month: { type: Type.STRING }, adjustment: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["month", "adjustment", "amount", "reasoning"] } }, currentMonthMultiplier: { type: Type.STRING } }, required: ["adjustments", "currentMonthMultiplier"] },
+        competitorSpendAnalysis: { type: Type.OBJECT, properties: { estimatedSpendLow: { type: Type.STRING }, estimatedSpendHigh: { type: Type.STRING }, marketPosition: { type: Type.STRING }, strategyRecommendation: { type: Type.STRING } }, required: ["estimatedSpendLow", "estimatedSpendHigh", "marketPosition", "strategyRecommendation"] },
+        allocationBreakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { category: { type: Type.STRING }, percentage: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["category", "percentage", "amount", "reasoning"] } },
+        healthScore: { type: Type.OBJECT, properties: { overallScore: { type: Type.NUMBER }, rating: { type: Type.STRING }, breakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { component: { type: Type.STRING }, score: { type: Type.NUMBER }, maxScore: { type: Type.NUMBER }, assessment: { type: Type.STRING } }, required: ["component", "score", "maxScore", "assessment"] } }, strengths: { type: Type.ARRAY, items: { type: Type.STRING } }, risks: { type: Type.ARRAY, items: { type: Type.STRING } }, recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }, confidenceLevel: { type: Type.STRING } }, required: ["overallScore", "rating", "breakdown", "strengths", "risks", "recommendations", "confidenceLevel"] }
+      },
+      required: ["benchmarks", "maxCpaAnalysis", "scenarios", "roiProjection", "recommendation", "seasonalAnalysis", "competitorSpendAnalysis", "allocationBreakdown", "healthScore"]
+    },
+    budgetStrategy: {
+      type: Type.OBJECT,
+      properties: {
+        dailyBudget: { type: Type.STRING },
+        bidStrategy: { type: Type.STRING }
+      },
+      required: ["dailyBudget", "bidStrategy"]
+    },
+    accountStructure: {
+      type: Type.OBJECT,
+      properties: {
+        structureType: { type: Type.STRING },
+        campaigns: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              purpose: { type: Type.STRING },
+              budgetSplit: { type: Type.STRING }
+            },
+            required: ["name", "purpose", "budgetSplit"]
+          }
+        },
+        rationale: { type: Type.STRING }
+      },
+      required: ["structureType", "campaigns", "rationale"]
+    },
+    creativeStrategy: {
+      type: Type.OBJECT,
+      properties: {
+        visualHooks: { type: Type.ARRAY, items: { type: Type.STRING } },
+        copyAngles: { type: Type.ARRAY, items: { type: Type.STRING } },
+        formatSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+      },
+      required: ["visualHooks", "copyAngles", "formatSuggestions"]
+    },
+    adSets: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          targeting: {
+            type: Type.OBJECT,
+            properties: {
+              audienceType: { type: Type.STRING },
+              details: { type: Type.STRING },
+              location: { type: Type.STRING },
+              age: { type: Type.STRING }
+            },
+            required: ["audienceType", "details", "location", "age"]
+          },
+          placements: { type: Type.STRING },
+          budgetAllocation: { type: Type.STRING },
+          ads: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                format: { type: Type.STRING },
+                primaryText: { type: Type.STRING },
+                headline: { type: Type.STRING },
+                description: { type: Type.STRING },
+                callToAction: { type: Type.STRING },
+                visualDescription: { type: Type.STRING }
+              },
+              required: ["primaryText", "headline", "description", "visualDescription"]
+            }
+          }
+        },
+        required: ["name", "targeting", "ads"]
+      }
+    },
+    trackingSetup: {
+      type: Type.OBJECT,
+      properties: {
+        pixelInstallation: { type: Type.ARRAY, items: { type: Type.STRING } },
+        standardEvents: { type: Type.ARRAY, items: { type: Type.STRING } },
+        gtmInstructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        capiInstructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        domainVerification: { type: Type.STRING }
+      },
+      required: ["pixelInstallation", "standardEvents", "gtmInstructions", "capiInstructions", "domainVerification"]
+    },
+    optimization: {
+      type: Type.OBJECT,
+      properties: {
+        testingPlan: { type: Type.STRING },
+        scalingMetrics: { type: Type.ARRAY, items: { type: Type.STRING } }
+      },
+      required: ["testingPlan", "scalingMetrics"]
+    }
+  },
+  required: ["campaignName", "objective", "performance5Score", "budgetAnalysis", "budgetStrategy", "accountStructure", "creativeStrategy", "adSets", "trackingSetup", "optimization"]
+};
+
+
 export const generateCampaign = async (data: UserInput): Promise<Omit<GeneratedCampaign, 'id' | 'createdAt' | 'businessName' | 'industry' | 'location'>> => {
   await ensureApiKey();
   const ai = getClient();
@@ -398,88 +637,6 @@ export const generateCampaign = async (data: UserInput): Promise<Omit<GeneratedC
 
   Return JSON according to the schema.`;
 
-  // Modified Schema with looser descriptions to allow polymorphism
-  const campaignSchema: any = {
-    type: Type.OBJECT,
-    properties: {
-      budgetAnalysis: {
-        type: Type.OBJECT,
-        properties: {
-          benchmarks: { type: Type.OBJECT, properties: { avgCpc: { type: Type.STRING, description: "Avg Cost Per Action (CPC, CPV, or CPA)" }, avgCvr: { type: Type.STRING } }, required: ["avgCpc", "avgCvr"] },
-          maxCpaAnalysis: { type: Type.OBJECT, properties: { breakEvenCpa: { type: Type.STRING }, targetCpa: { type: Type.STRING } }, required: ["breakEvenCpa", "targetCpa"] },
-          scenarios: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                label: { type: Type.STRING },
-                budget: { type: Type.STRING },
-                expectedClicks: { type: Type.STRING, description: "Clicks, Views, or Interactions" },
-                expectedConversions: { type: Type.STRING },
-                estCpa: { type: Type.STRING },
-                timeline: { type: Type.STRING },
-                description: { type: Type.STRING }
-              },
-              required: ["label", "budget", "expectedClicks", "expectedConversions", "estCpa", "timeline", "description"]
-            }
-          },
-          roiProjection: { type: Type.OBJECT, properties: { monthlyAdSpend: { type: Type.STRING }, estimatedRevenue: { type: Type.STRING }, estimatedProfit: { type: Type.STRING }, roas: { type: Type.STRING } }, required: ["monthlyAdSpend", "estimatedRevenue", "estimatedProfit", "roas"] },
-          recommendation: { type: Type.OBJECT, properties: { monthlyBudget: { type: Type.STRING }, dailyBudget: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["monthlyBudget", "dailyBudget", "reasoning"] },
-          seasonalAnalysis: { type: Type.OBJECT, properties: { adjustments: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { month: { type: Type.STRING }, adjustment: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["month", "adjustment", "amount", "reasoning"] } }, currentMonthMultiplier: { type: Type.STRING } }, required: ["adjustments", "currentMonthMultiplier"] },
-          competitorSpendAnalysis: { type: Type.OBJECT, properties: { estimatedSpendLow: { type: Type.STRING }, estimatedSpendHigh: { type: Type.STRING }, marketPosition: { type: Type.STRING }, strategyRecommendation: { type: Type.STRING } }, required: ["estimatedSpendLow", "estimatedSpendHigh", "marketPosition", "strategyRecommendation"] },
-          allocationBreakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { category: { type: Type.STRING }, percentage: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["category", "percentage", "amount", "reasoning"] } },
-          healthScore: { type: Type.OBJECT, properties: { overallScore: { type: Type.NUMBER }, rating: { type: Type.STRING }, breakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { component: { type: Type.STRING }, score: { type: Type.NUMBER }, maxScore: { type: Type.NUMBER }, assessment: { type: Type.STRING } }, required: ["component", "score", "maxScore", "assessment"] } }, strengths: { type: Type.ARRAY, items: { type: Type.STRING } }, risks: { type: Type.ARRAY, items: { type: Type.STRING } }, recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }, confidenceLevel: { type: Type.STRING } }, required: ["overallScore", "rating", "breakdown", "strengths", "risks", "recommendations", "confidenceLevel"] }
-        },
-        required: ["benchmarks", "maxCpaAnalysis", "scenarios", "roiProjection", "recommendation", "seasonalAnalysis", "competitorSpendAnalysis", "allocationBreakdown", "healthScore"]
-      },
-      strategy: { type: Type.OBJECT, properties: { campaignType: { type: Type.STRING }, objective: { type: Type.STRING }, biddingStrategy: { type: Type.STRING }, biddingReasoning: { type: Type.STRING }, budgetAllocation: { type: Type.STRING }, audienceSegments: { type: Type.ARRAY, items: { type: Type.STRING } }, demographicTargeting: { type: Type.STRING }, locationStrategy: { type: Type.STRING }, adSchedule: { type: Type.STRING } }, required: ["campaignType", "objective", "biddingStrategy", "budgetAllocation", "audienceSegments", "locationStrategy"] },
-      structure: { type: Type.OBJECT, properties: { diagram: { type: Type.STRING }, networks: { type: Type.ARRAY, items: { type: Type.STRING } }, settings: { type: Type.OBJECT, properties: { languages: { type: Type.STRING }, adRotation: { type: Type.STRING }, startDate: { type: Type.STRING }, urlOptions: { type: Type.STRING } }, required: ["languages", "adRotation"] } }, required: ["diagram", "settings"] },
-      adGroups: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            theme: { type: Type.STRING },
-            targetCpc: { type: Type.STRING },
-            individualBidStrategy: { type: Type.STRING },
-            keywords: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  term: { type: Type.STRING },
-                  matchType: { type: Type.STRING, description: "Broad, Phrase, Exact, OR 'Signal', 'Topic' for non-search types." },
-                  intent: { type: Type.STRING, description: "High, Medium, or Low" },
-                  searchVolume: { type: Type.STRING },
-                  avgCpc: { type: Type.STRING }
-                },
-                required: ["term", "matchType", "intent", "searchVolume", "avgCpc"]
-              }
-            },
-            negativeKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
-            ads: {
-              type: Type.ARRAY,
-              items: { type: Type.OBJECT, properties: { headlines: { type: Type.ARRAY, items: { type: Type.STRING } }, descriptions: { type: Type.ARRAY, items: { type: Type.STRING } }, paths: { type: Type.ARRAY, items: { type: Type.STRING } }, }, required: ["headlines", "descriptions", "paths"] }
-            }
-          },
-          required: ["name", "theme", "targetCpc", "individualBidStrategy", "keywords", "ads"]
-        }
-      },
-      assets: {
-        type: Type.OBJECT, properties: {
-          sitelinks: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { text: { type: Type.STRING }, desc1: { type: Type.STRING }, desc2: { type: Type.STRING }, purpose: { type: Type.STRING } }, required: ["text", "desc1", "desc2"] } }, callouts: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { text: { type: Type.STRING } }, required: ["text"] } }, snippets: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { header: { type: Type.STRING }, values: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["header", "values"] } }, imageIdeas: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { description: { type: Type.STRING }, style: { type: Type.STRING }, ratio: { type: Type.STRING } }, required: ["description", "style"] } }, callAsset: { type: Type.STRING }, promotion: { type: Type.OBJECT, properties: { occasion: { type: Type.STRING }, details: { type: Type.STRING } } },
-          priceAssets: { type: Type.OBJECT, properties: { header: { type: Type.STRING }, items: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, price: { type: Type.STRING }, description: { type: Type.STRING } }, required: ["name", "price"] } } }, required: ["header", "items"] },
-          leadForm: { type: Type.OBJECT, properties: { headline: { type: Type.STRING }, description: { type: Type.STRING }, requiredFields: { type: Type.ARRAY, items: { type: Type.STRING } }, ctaType: { type: Type.STRING } }, required: ["headline", "requiredFields"] }
-        }, required: ["sitelinks", "callouts", "snippets", "imageIdeas"]
-      },
-      conversionTracking: { type: Type.OBJECT, properties: { primaryActions: { type: Type.ARRAY, items: { type: Type.STRING } }, secondaryActions: { type: Type.ARRAY, items: { type: Type.STRING } }, setupInstructions: { type: Type.STRING }, gtmInstructions: { type: Type.ARRAY, items: { type: Type.STRING } }, eventSnippet: { type: Type.STRING }, enhancedConversions: { type: Type.STRING }, attributionModel: { type: Type.STRING } }, required: ["primaryActions", "setupInstructions", "gtmInstructions", "eventSnippet", "enhancedConversions", "attributionModel"] },
-      landingPage: { type: Type.OBJECT, properties: { headlineRecommendation: { type: Type.STRING }, contentSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } }, speedOptimization: { type: Type.STRING }, mobileChecklist: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["headlineRecommendation", "contentSuggestions"] },
-      optimization: { type: Type.OBJECT, properties: { launchPhase: { type: Type.STRING }, learningPhase: { type: Type.STRING }, scalingPhase: { type: Type.STRING }, keyMetrics: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["launchPhase", "learningPhase", "scalingPhase"] },
-      competitorAnalysis: { type: Type.OBJECT, properties: { missingKeywords: { type: Type.ARRAY, items: { type: Type.STRING } }, messagingGaps: { type: Type.ARRAY, items: { type: Type.STRING } }, differentiationStrategy: { type: Type.STRING }, citations: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { source: { type: Type.STRING }, url: { type: Type.STRING } }, required: ["source", "url"] } } }, required: ["messagingGaps", "differentiationStrategy", "citations"] }
-    },
-    required: ["budgetAnalysis", "strategy", "structure", "adGroups", "assets", "conversionTracking", "landingPage", "optimization", "competitorAnalysis"]
-  };
 
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
@@ -583,160 +740,6 @@ export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
   
   Return strictly JSON matching the schema.`;
 
-  const metaCampaignSchema: any = {
-    type: Type.OBJECT,
-    properties: {
-      campaignName: { type: Type.STRING },
-      objective: { type: Type.STRING },
-      specialAdCategories: { type: Type.STRING },
-      buyingType: { type: Type.STRING },
-      performance5Score: {
-        type: Type.OBJECT,
-        properties: {
-          overallScore: { type: Type.NUMBER },
-          breakdown: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                pillar: { type: Type.STRING },
-                score: { type: Type.NUMBER },
-                assessment: { type: Type.STRING },
-                recommendation: { type: Type.STRING }
-              },
-              required: ["pillar", "score", "assessment", "recommendation"]
-            }
-          }
-        },
-        required: ["overallScore", "breakdown"]
-      },
-      budgetAnalysis: {
-        type: Type.OBJECT,
-        properties: {
-          benchmarks: { type: Type.OBJECT, properties: { avgCpc: { type: Type.STRING }, avgCvr: { type: Type.STRING } }, required: ["avgCpc", "avgCvr"] },
-          maxCpaAnalysis: { type: Type.OBJECT, properties: { breakEvenCpa: { type: Type.STRING }, targetCpa: { type: Type.STRING } }, required: ["breakEvenCpa", "targetCpa"] },
-          scenarios: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                label: { type: Type.STRING },
-                budget: { type: Type.STRING },
-                expectedClicks: { type: Type.STRING },
-                expectedConversions: { type: Type.STRING },
-                estCpa: { type: Type.STRING },
-                timeline: { type: Type.STRING },
-                description: { type: Type.STRING }
-              },
-              required: ["label", "budget", "expectedClicks", "expectedConversions", "estCpa", "timeline", "description"]
-            }
-          },
-          roiProjection: { type: Type.OBJECT, properties: { monthlyAdSpend: { type: Type.STRING }, estimatedRevenue: { type: Type.STRING }, estimatedProfit: { type: Type.STRING }, roas: { type: Type.STRING } }, required: ["monthlyAdSpend", "estimatedRevenue", "estimatedProfit", "roas"] },
-          recommendation: { type: Type.OBJECT, properties: { monthlyBudget: { type: Type.STRING }, dailyBudget: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["monthlyBudget", "dailyBudget", "reasoning"] },
-          seasonalAnalysis: { type: Type.OBJECT, properties: { adjustments: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { month: { type: Type.STRING }, adjustment: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["month", "adjustment", "amount", "reasoning"] } }, currentMonthMultiplier: { type: Type.STRING } }, required: ["adjustments", "currentMonthMultiplier"] },
-          competitorSpendAnalysis: { type: Type.OBJECT, properties: { estimatedSpendLow: { type: Type.STRING }, estimatedSpendHigh: { type: Type.STRING }, marketPosition: { type: Type.STRING }, strategyRecommendation: { type: Type.STRING } }, required: ["estimatedSpendLow", "estimatedSpendHigh", "marketPosition", "strategyRecommendation"] },
-          allocationBreakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { category: { type: Type.STRING }, percentage: { type: Type.STRING }, amount: { type: Type.STRING }, reasoning: { type: Type.STRING } }, required: ["category", "percentage", "amount", "reasoning"] } },
-          healthScore: { type: Type.OBJECT, properties: { overallScore: { type: Type.NUMBER }, rating: { type: Type.STRING }, breakdown: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { component: { type: Type.STRING }, score: { type: Type.NUMBER }, maxScore: { type: Type.NUMBER }, assessment: { type: Type.STRING } }, required: ["component", "score", "maxScore", "assessment"] } }, strengths: { type: Type.ARRAY, items: { type: Type.STRING } }, risks: { type: Type.ARRAY, items: { type: Type.STRING } }, recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }, confidenceLevel: { type: Type.STRING } }, required: ["overallScore", "rating", "breakdown", "strengths", "risks", "recommendations", "confidenceLevel"] }
-        },
-        required: ["benchmarks", "maxCpaAnalysis", "scenarios", "roiProjection", "recommendation", "seasonalAnalysis", "competitorSpendAnalysis", "allocationBreakdown", "healthScore"]
-      },
-      budgetStrategy: {
-        type: Type.OBJECT,
-        properties: {
-          dailyBudget: { type: Type.STRING },
-          bidStrategy: { type: Type.STRING }
-        },
-        required: ["dailyBudget", "bidStrategy"]
-      },
-      accountStructure: {
-        type: Type.OBJECT,
-        properties: {
-          structureType: { type: Type.STRING },
-          campaigns: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                name: { type: Type.STRING },
-                purpose: { type: Type.STRING },
-                budgetSplit: { type: Type.STRING }
-              },
-              required: ["name", "purpose", "budgetSplit"]
-            }
-          },
-          rationale: { type: Type.STRING }
-        },
-        required: ["structureType", "campaigns", "rationale"]
-      },
-      creativeStrategy: {
-        type: Type.OBJECT,
-        properties: {
-          visualHooks: { type: Type.ARRAY, items: { type: Type.STRING } },
-          copyAngles: { type: Type.ARRAY, items: { type: Type.STRING } },
-          formatSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } }
-        },
-        required: ["visualHooks", "copyAngles", "formatSuggestions"]
-      },
-      adSets: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            targeting: {
-              type: Type.OBJECT,
-              properties: {
-                audienceType: { type: Type.STRING },
-                details: { type: Type.STRING },
-                location: { type: Type.STRING },
-                age: { type: Type.STRING }
-              },
-              required: ["audienceType", "details", "location", "age"]
-            },
-            placements: { type: Type.STRING },
-            budgetAllocation: { type: Type.STRING },
-            ads: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  format: { type: Type.STRING },
-                  primaryText: { type: Type.STRING },
-                  headline: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  callToAction: { type: Type.STRING },
-                  visualDescription: { type: Type.STRING }
-                },
-                required: ["primaryText", "headline", "description", "visualDescription"]
-              }
-            }
-          },
-          required: ["name", "targeting", "ads"]
-        }
-      },
-      trackingSetup: {
-        type: Type.OBJECT,
-        properties: {
-          pixelInstallation: { type: Type.ARRAY, items: { type: Type.STRING } },
-          standardEvents: { type: Type.ARRAY, items: { type: Type.STRING } },
-          gtmInstructions: { type: Type.ARRAY, items: { type: Type.STRING } },
-          capiInstructions: { type: Type.ARRAY, items: { type: Type.STRING } },
-          domainVerification: { type: Type.STRING }
-        },
-        required: ["pixelInstallation", "standardEvents", "gtmInstructions", "capiInstructions", "domainVerification"]
-      },
-      optimization: {
-        type: Type.OBJECT,
-        properties: {
-          testingPlan: { type: Type.STRING },
-          scalingMetrics: { type: Type.ARRAY, items: { type: Type.STRING } }
-        },
-        required: ["testingPlan", "scalingMetrics"]
-      }
-    },
-    required: ["campaignName", "objective", "performance5Score", "budgetAnalysis", "budgetStrategy", "accountStructure", "creativeStrategy", "adSets", "trackingSetup", "optimization"]
-  };
 
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
@@ -962,10 +965,12 @@ INSTRUCTIONS:
 Return ONLY the updated JSON object with the same schema as the input.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-pro-preview",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
+      responseSchema: platform === 'google' ? campaignSchema : metaCampaignSchema,
+      thinkingConfig: { thinkingBudget: 32768 }
     }
   });
 
