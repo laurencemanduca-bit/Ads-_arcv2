@@ -2,8 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { GeneratedCampaign, ResponsiveSearchAd, AdGroup, BudgetScenario, KeywordEntry } from '../types';
-import { Copy, Check, MousePointerClick, MessageSquare, List, Image as ImageIcon, Tag, DollarSign, Target, RefreshCw, LayoutDashboard, Globe, Users, TrendingUp, CalendarClock, Layers, Milestone, BarChart3, Search, Lightbulb, Calculator, ArrowRight, Wallet, AlertTriangle, ShieldCheck, Thermometer, Swords, Plus, Loader2, Building, GripHorizontal, Box, PieChart, Download, Link as LinkIcon, Gauge, Edit, Trash2, Video, PlayCircle, Smartphone, Sparkles } from 'lucide-react';
-import { generateMoreKeywords, editCampaignWithAI } from '../services/gemini';
+import { Copy, Check, MousePointerClick, MessageSquare, List, Image as ImageIcon, Tag, DollarSign, Target, RefreshCw, LayoutDashboard, Globe, Users, TrendingUp, CalendarClock, Layers, Milestone, BarChart3, Search, Lightbulb, Calculator, ArrowRight, Wallet, AlertTriangle, ShieldCheck, Thermometer, Swords, Plus, Loader2, Building, GripHorizontal, Box, PieChart, Download, Link as LinkIcon, Gauge, Edit, Trash2, Video, PlayCircle, Smartphone, Sparkles, Code2, Monitor, X, Book, ExternalLink, Star, Zap } from 'lucide-react';
+import { generateMoreKeywords, editCampaignWithAI, generateAdsScripts, analyzeLandingPage, fetchLiveCompetitorAds } from '../services/gemini';
 
 interface CampaignResultsProps {
     campaign: GeneratedCampaign;
@@ -96,11 +96,23 @@ const CampaignArchitectureDiagram = ({ businessName, adGroups, campaignType }: {
 }
 
 const AdStrengthMeter: React.FC<{ headlines: string[], descriptions: string[] }> = ({ headlines, descriptions }) => {
-    // If we have content, it's AI generated and excellent.
     let score = 0;
-    if (headlines.length > 1 && descriptions.length > 0) {
-        score = 100;
-    }
+    // Headline quantity (up to 30pts)
+    score += Math.min(headlines.length, 15) * 2;
+    // Description quantity (up to 20pts)
+    score += Math.min(descriptions.length, 4) * 5;
+    // No headline over 30 chars (10pts)
+    if (headlines.every(h => h.length <= 30)) score += 10;
+    // No description over 90 chars (10pts)
+    if (descriptions.every(d => d.length <= 90)) score += 10;
+    // CTA keyword presence (10pts)
+    const ctaWords = ['get', 'call', 'start', 'try', 'book', 'free', 'save', 'contact', 'learn', 'now', 'today'];
+    const allText = [...headlines, ...descriptions].join(' ').toLowerCase();
+    if (ctaWords.some(w => allText.includes(w))) score += 10;
+    // Headline length variety (10pts)
+    const avgLen = headlines.reduce((a, h) => a + h.length, 0) / (headlines.length || 1);
+    if (avgLen > 10) score += 10;
+    score = Math.min(score, 100);
 
     let label = "Poor";
     let color = "text-red-600 bg-red-100 border-red-200";
@@ -484,9 +496,39 @@ const AdGroupDisplay: React.FC<{
     );
 };
 
+// Negative Keyword Library data
+const NEGATIVE_KEYWORD_LIBRARY: { category: string; keywords: string[] }[] = [
+  { category: 'Universal – Intent Filters', keywords: ['free', 'cheap', 'cheapest', 'affordable', 'low cost', 'discount', 'how to', 'tutorial', 'diy', 'youtube', 'reddit', 'forum', 'blog', 'wikipedia', 'definition', 'what is', 'what are', 'template', 'sample', 'example', 'images', 'pictures', 'stock photo'] },
+  { category: 'Universal – Employment', keywords: ['jobs', 'job', 'careers', 'career', 'hiring', 'employment', 'apply', 'resume', 'salary', 'internship', 'apprenticeship', 'work from home', 'remote job'] },
+  { category: 'Universal – Reputation Risk', keywords: ['scam', 'fraud', 'lawsuit', 'complaint', 'complaints', 'review', 'reviews', 'rating', 'ratings', 'class action', 'settlement', 'bbb'] },
+  { category: 'Legal Services', keywords: ['free legal advice', 'pro bono', 'legal aid', 'law school', 'law student', 'paralegal course', 'bar exam', 'legal dictionary', 'self represented'] },
+  { category: 'Home Services / Contractors', keywords: ['permit', 'permit cost', 'diy plumbing', 'diy electrical', 'code violation', 'building code', 'home depot', 'lowes', 'menards', 'contractor license exam', 'apprentice'] },
+  { category: 'Medical / Healthcare', keywords: ['medical school', 'nursing school', 'residency', 'clinical trial', 'research study', 'academic', 'textbook', 'icd code', 'cpt code', 'insurance billing', 'prior auth'] },
+  { category: 'Financial / Insurance', keywords: ['claim denied', 'insurance appeal', 'insurance complaint', 'class action', 'ponzi', 'fraud alert', 'calculate yourself', 'spreadsheet', 'formula', 'diy insurance'] },
+  { category: 'SaaS / Software', keywords: ['crack', 'keygen', 'serial key', 'pirate', 'open source', 'free alternative', 'github', 'stackoverflow', 'documentation', 'api docs', 'sdk', 'developer', 'source code'] },
+  { category: 'Education / Online Courses', keywords: ['free course', 'free certification', 'coursera', 'udemy free', 'khan academy', 'mit opencourseware', 'torrent', 'pdf download', 'audiobook', 'library'] },
+];
+
 const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate }) => {
-    const [activeTab, setActiveTab] = useState<'budget' | 'strategy' | 'adgroups' | 'assets' | 'tracking' | 'competitors'>('budget');
+    const [activeTab, setActiveTab] = useState<'budget' | 'strategy' | 'adgroups' | 'assets' | 'tracking' | 'competitors' | 'scripts' | 'landingpage'>('budget');
     const [activeAdGroupIndex, setActiveAdGroupIndex] = useState(0);
+
+    // Scripts Generator State
+    const [scripts, setScripts] = useState<{ name: string; category: string; description: string; difficulty: string; code: string; }[]>([]);
+    const [isLoadingScripts, setIsLoadingScripts] = useState(false);
+    const [activeScript, setActiveScript] = useState(0);
+
+    // Landing Page Analyzer State
+    const [lpUrl, setLpUrl] = useState('');
+    const [lpAnalysis, setLpAnalysis] = useState<any>(null);
+    const [isAnalyzingLP, setIsAnalyzingLP] = useState(false);
+
+    // Live Competitor Ads State
+    const [competitorAds, setCompetitorAds] = useState<any[]>([]);
+    const [isFetchingCompetitorAds, setIsFetchingCompetitorAds] = useState(false);
+
+    // Negative Keyword Library
+    const [showNegativeLibrary, setShowNegativeLibrary] = useState(false);
 
     // PDF Export ref and logic
     const componentRef = useRef<HTMLDivElement>(null);
@@ -549,75 +591,124 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
         onUpdate({ ...campaign, adGroups: newGroups });
     };
 
+    const handleGenerateScripts = async () => {
+        setIsLoadingScripts(true);
+        try {
+            const result = await generateAdsScripts(campaign);
+            setScripts(result);
+        } catch (e) {
+            console.error(e);
+        }
+        setIsLoadingScripts(false);
+    };
+
+    const handleAnalyzeLP = async () => {
+        if (!lpUrl.trim()) return;
+        setIsAnalyzingLP(true);
+        setLpAnalysis(null);
+        try {
+            const result = await analyzeLandingPage(lpUrl, campaign.businessName, campaign.industry, campaign.strategy?.objective || 'Leads');
+            setLpAnalysis(result);
+        } catch (e) {
+            console.error(e);
+        }
+        setIsAnalyzingLP(false);
+    };
+
+    const handleFetchCompetitorAds = async () => {
+        setIsFetchingCompetitorAds(true);
+        const topKeywords = campaign.adGroups.flatMap(g => g.keywords.slice(0, 3).map(k => k.term)).slice(0, 6);
+        try {
+            const result = await fetchLiveCompetitorAds(campaign.businessName, topKeywords, campaign.location);
+            setCompetitorAds(result);
+        } catch (e) {
+            console.error(e);
+        }
+        setIsFetchingCompetitorAds(false);
+    };
+
     const handleExportCsv = () => {
-        // Generate CSV content formatted for Google Ads Editor / Bulk Upload
-        const headers = [
-            'Campaign', 'Campaign Daily Budget', 'Bid Strategy Type',
-            'Ad Group', 'Max CPC', 'Keyword', 'Match Type',
-            'Headline 1', 'Headline 2', 'Headline 3',
-            'Description 1', 'Description 2'
-        ];
+        // Full Google Ads Editor compatible CSV export
+        const q = (s: string) => `"${(s || '').replace(/"/g, '""')}"`;
+        const campaignName = `${campaign.businessName} - ${strategy.campaignType}`;
+        const dailyBudget = recommendation.dailyBudget?.replace(/[^0-9.]/g, '') || '30';
 
-        const rows = [];
+        const lines: string[] = [];
 
-        // Campaign Row
-        rows.push([
-            campaign.businessName + " - " + strategy.campaignType, // Campaign Name
-            recommendation.dailyBudget?.replace(/[^0-9.]/g, '') || '0', // Budget
-            strategy.biddingStrategy, // Bid Strategy
-            '', '', '', '', '', '', '', '', '' // Empty other fields
-        ]);
+        // Header matching Google Ads Editor Bulk Upload format
+        lines.push([
+            'Row Type', 'Campaign', 'Daily Budget', 'Bid Strategy Type',
+            'Ad Group', 'Max CPC', 'Keyword', 'Match Type', 'Status',
+            'Ad Type', 'Final URL',
+            'Headline 1', 'Headline 2', 'Headline 3', 'Headline 4', 'Headline 5',
+            'Headline 6', 'Headline 7', 'Headline 8', 'Headline 9', 'Headline 10',
+            'Headline 11', 'Headline 12', 'Headline 13', 'Headline 14', 'Headline 15',
+            'Description 1', 'Description 2', 'Description 3', 'Description 4',
+            'Path 1', 'Path 2'
+        ].map(q).join(','));
 
-        // Ad Groups, Keywords, and Ads
+        // Campaign row
+        lines.push([q('Campaign'), q(campaignName), q(dailyBudget), q(strategy.biddingStrategy),
+            q(''), q(''), q(''), q(''), q('Enabled'),
+            q(''), q(campaign.competitorAnalysis?.citations?.[0]?.url || ''),
+            ...Array(19).fill(q(''))
+        ].join(','));
+
         campaign.adGroups.forEach(group => {
-            // Clean up target CPC string to get a number if possible, or leave blank if range
-            const maxCpcMatch = group.targetCpc.match(/(\d+\.\d{2})/);
+            const maxCpcMatch = group.targetCpc.match(/(\d+\.?\d*)/);
             const maxCpc = maxCpcMatch ? maxCpcMatch[0] : '';
 
-            // Ad Group Row
-            rows.push([
-                campaign.businessName + " - " + strategy.campaignType,
-                '', '',
-                group.name,
-                maxCpc,
-                '', '', '', '', '', '', ''
-            ]);
+            // Ad Group row
+            lines.push([q('Ad group'), q(campaignName), q(''), q(''),
+                q(group.name), q(maxCpc), q(''), q(''), q('Enabled'),
+                q(''), q(''), ...Array(19).fill(q(''))
+            ].join(','));
 
-            // Keywords
+            // Keyword rows
             group.keywords.forEach(kw => {
-                rows.push([
-                    campaign.businessName + " - " + strategy.campaignType,
-                    '', '',
-                    group.name,
-                    '',
-                    kw.term,
-                    kw.matchType,
-                    '', '', '', '', ''
-                ]);
+                let term = kw.term;
+                if (kw.matchType === 'Phrase') term = `"${kw.term}"`;
+                else if (kw.matchType === 'Exact') term = `[${kw.term}]`;
+
+                lines.push([q('Keyword'), q(campaignName), q(''), q(''),
+                    q(group.name), q(''), q(term), q(kw.matchType), q('Enabled'),
+                    q(''), q(''), ...Array(19).fill(q(''))
+                ].join(','));
             });
 
-            // Ads
+            // RSA rows — one row per ad with all 15 headlines and 4 descriptions
             group.ads.forEach(ad => {
-                rows.push([
-                    campaign.businessName + " - " + strategy.campaignType,
-                    '', '',
-                    group.name,
-                    '',
-                    '',
-                    '',
-                    ad.headlines[0] || '',
-                    ad.headlines[1] || '',
-                    ad.headlines[2] || '',
-                    ad.descriptions[0] || '',
-                    ad.descriptions[1] || ''
-                ]);
+                const hs = Array.from({ length: 15 }, (_, i) => q(ad.headlines[i] || ''));
+                const ds = Array.from({ length: 4 }, (_, i) => q(ad.descriptions[i] || ''));
+                const paths = Array.isArray(ad.paths) ? ad.paths : ['', ''];
+
+                lines.push([q('Ad'), q(campaignName), q(''), q(''),
+                    q(group.name), q(''), q(''), q(''), q('Enabled'),
+                    q('Responsive search ad'), q(''),
+                    ...hs, ...ds,
+                    q(paths[0] || ''), q(paths[1] || '')
+                ].join(','));
+            });
+
+            // Negative Keywords
+            group.negativeKeywords?.forEach(neg => {
+                lines.push([q('Negative keyword'), q(campaignName), q(''), q(''),
+                    q(group.name), q(''), q(`[${neg}]`), q('Exact'), q('Enabled'),
+                    q(''), q(''), ...Array(19).fill(q(''))
+                ].join(','));
             });
         });
 
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(','))
-        ].join('\n');
+        // Sitelinks
+        assets.sitelinks?.forEach(sl => {
+            lines.push([q('Sitelink'), q(campaignName), q(''), q(''),
+                q(''), q(''), q(''), q(''), q('Enabled'),
+                q(sl.text), q(''),
+                q(sl.desc1), q(sl.desc2), ...Array(17).fill(q(''))
+            ].join(','));
+        });
+
+        const csvContent = lines.join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -672,6 +763,18 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'tracking' ? 'bg-google-blue text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                     <BarChart3 className="w-4 h-4" /> Tracking
+                </button>
+                <button
+                    onClick={() => setActiveTab('scripts')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'scripts' ? 'bg-google-blue text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                    <Code2 className="w-4 h-4" /> Scripts
+                </button>
+                <button
+                    onClick={() => setActiveTab('landingpage')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'landingpage' ? 'bg-google-blue text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                    <Monitor className="w-4 h-4" /> Landing Page
                 </button>
 
                 {/* Actions */}
@@ -1026,16 +1129,24 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
             {/* AD GROUPS TAB */}
             {activeTab === 'adgroups' && (
                 <div className="space-y-6">
-                    <div className="flex gap-4 border-b border-slate-200 pb-2 overflow-x-auto">
-                        {campaign.adGroups.map((group, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => setActiveAdGroupIndex(idx)}
-                                className={`whitespace-nowrap pb-2 px-1 text-sm font-semibold border-b-2 transition ${activeAdGroupIndex === idx ? 'border-google-blue text-google-blue' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-                            >
-                                {group.name}
-                            </button>
-                        ))}
+                    <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-2">
+                        <div className="flex gap-4 overflow-x-auto">
+                            {campaign.adGroups.map((group, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveAdGroupIndex(idx)}
+                                    className={`whitespace-nowrap pb-2 px-1 text-sm font-semibold border-b-2 transition ${activeAdGroupIndex === idx ? 'border-google-blue text-google-blue' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    {group.name}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setShowNegativeLibrary(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold hover:bg-red-100 transition shrink-0"
+                        >
+                            <ShieldCheck className="w-4 h-4" /> Negative Keyword Library
+                        </button>
                     </div>
                     <AdGroupDisplay
                         group={campaign.adGroups[activeAdGroupIndex]}
@@ -1087,7 +1198,7 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
                 </div>
             )}
 
-            {/* COMPETITOR INTEL TAB - Read Only */}
+            {/* COMPETITOR INTEL TAB */}
             {activeTab === 'competitors' && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="bg-gradient-to-r from-indigo-900 to-slate-900 text-white rounded-xl p-8 shadow-lg">
@@ -1137,6 +1248,64 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
                                 ))}
                             </ul>
                         </div>
+                    </div>
+
+                    {/* Live Competitor Ads */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                        <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                            <div className="flex items-center gap-2">
+                                <div className="text-google-blue"><Search className="w-5 h-5" /></div>
+                                <h3 className="font-bold text-lg text-slate-800">Live Competitor Ad Copy</h3>
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">AI-Powered</span>
+                            </div>
+                            <button
+                                onClick={handleFetchCompetitorAds}
+                                disabled={isFetchingCompetitorAds}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm"
+                            >
+                                {isFetchingCompetitorAds ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+                                {isFetchingCompetitorAds ? 'Fetching...' : 'Fetch Live Ads'}
+                            </button>
+                        </div>
+                        {competitorAds.length === 0 && !isFetchingCompetitorAds && (
+                            <div className="text-center py-10 text-slate-400">
+                                <Swords className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                                <p className="text-sm font-medium">Click "Fetch Live Ads" to pull real competitor ad copy for your top keywords using AI grounding.</p>
+                            </div>
+                        )}
+                        {isFetchingCompetitorAds && (
+                            <div className="text-center py-10 text-slate-400 animate-pulse">
+                                <Globe className="w-10 h-10 mx-auto mb-3 text-indigo-400" />
+                                <p className="text-sm font-medium text-indigo-600">Researching live ads across the web...</p>
+                            </div>
+                        )}
+                        {competitorAds.length > 0 && (
+                            <div className="space-y-4">
+                                {competitorAds.map((comp: any, i: number) => (
+                                    <div key={i} className="border border-slate-200 rounded-xl p-5 hover:border-indigo-300 transition">
+                                        <div className="flex items-start justify-between gap-4 mb-3">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-bold text-slate-800">{comp.advertiser}</span>
+                                                    <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded">{comp.displayUrl}</span>
+                                                </div>
+                                                <div className="text-google-blue font-semibold text-sm leading-snug">{comp.headline}</div>
+                                            </div>
+                                            {comp.angle && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-1 rounded-lg font-bold whitespace-nowrap shrink-0">{comp.angle}</span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-slate-600 mb-3">{comp.description}</p>
+                                        {comp.weakness && (
+                                            <div className="flex items-start gap-2 bg-orange-50 border border-orange-100 rounded-lg p-3">
+                                                <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                                                <p className="text-xs text-orange-800 font-medium">{comp.weakness}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Citations / Sources */}
@@ -1219,6 +1388,252 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
                 </div>
             )}
 
+            {/* SCRIPTS TAB */}
+            {activeTab === 'scripts' && (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-xl p-8 shadow-lg">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="p-2 bg-white/10 rounded-lg"><Code2 className="w-6 h-6 text-green-400" /></div>
+                                    <h2 className="text-2xl font-bold">Google Ads Scripts Generator</h2>
+                                </div>
+                                <p className="text-slate-300 max-w-2xl leading-relaxed">
+                                    Production-ready Google Ads Scripts tailored to your campaign. Automate bid management, budget pacing, quality score reporting, and more.
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleGenerateScripts}
+                                disabled={isLoadingScripts}
+                                className="flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-400 transition disabled:opacity-50 shadow-lg shrink-0"
+                            >
+                                {isLoadingScripts ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                                {isLoadingScripts ? 'Generating...' : 'Generate Scripts'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {isLoadingScripts && (
+                        <div className="text-center py-16 animate-pulse">
+                            <Code2 className="w-12 h-12 mx-auto mb-4 text-green-500 opacity-60" />
+                            <p className="text-slate-500 font-medium">Generating production-ready scripts for your campaign...</p>
+                        </div>
+                    )}
+
+                    {scripts.length === 0 && !isLoadingScripts && (
+                        <div className="text-center py-16 text-slate-400">
+                            <Code2 className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                            <p className="font-medium">Click "Generate Scripts" to create custom automation scripts for this campaign.</p>
+                            <p className="text-sm mt-2 text-slate-400">Scripts include: Budget Pacing Alerts, Auto-Negatives, Quality Score Reporter, Bid Adjuster, and Dayparting Optimizer.</p>
+                        </div>
+                    )}
+
+                    {scripts.length > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Script List */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-2">
+                                <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider px-2 pb-2 border-b border-slate-100">Available Scripts</h3>
+                                {scripts.map((s, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setActiveScript(i)}
+                                        className={`w-full text-left px-3 py-3 rounded-lg transition ${activeScript === i ? 'bg-slate-900 text-white' : 'hover:bg-slate-50 text-slate-700'}`}
+                                    >
+                                        <div className="font-semibold text-sm">{s.name}</div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${s.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' : s.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'} ${activeScript === i ? 'opacity-80' : ''}`}>
+                                                {s.difficulty}
+                                            </span>
+                                            <span className={`text-[10px] ${activeScript === i ? 'text-slate-400' : 'text-slate-400'}`}>{s.category}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Script Viewer */}
+                            <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                {scripts[activeScript] && (
+                                    <>
+                                        <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-bold text-slate-800">{scripts[activeScript].name}</h3>
+                                                <p className="text-sm text-slate-500 mt-1">{scripts[activeScript].description}</p>
+                                            </div>
+                                            <CopyButton text={scripts[activeScript].code} label="Copy Code" />
+                                        </div>
+                                        <div className="bg-slate-950 p-5 overflow-auto max-h-[500px]">
+                                            <pre className="text-green-300 text-xs font-mono leading-relaxed whitespace-pre-wrap">{scripts[activeScript].code}</pre>
+                                        </div>
+                                        <div className="px-5 py-3 bg-amber-50 border-t border-amber-100 flex items-start gap-2">
+                                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                            <p className="text-xs text-amber-800">
+                                                <strong>Usage:</strong> In Google Ads, go to Tools &amp; Settings → Bulk Actions → Scripts → New Script. Paste the code, authorize, and run.
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* LANDING PAGE ANALYZER TAB */}
+            {activeTab === 'landingpage' && (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="bg-gradient-to-r from-teal-900 to-slate-900 text-white rounded-xl p-8 shadow-lg">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="p-2 bg-white/10 rounded-lg"><Monitor className="w-6 h-6 text-teal-300" /></div>
+                            <h2 className="text-2xl font-bold">Landing Page CRO Analyzer</h2>
+                        </div>
+                        <p className="text-teal-100 max-w-2xl leading-relaxed">
+                            Analyze your landing page for conversion rate optimization. Get a CRO score, pass/fail checks, and specific improvements to increase your Quality Score and reduce wasted spend.
+                        </p>
+                    </div>
+
+                    {/* URL Input */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Landing Page URL</label>
+                        <div className="flex gap-3">
+                            <input
+                                value={lpUrl}
+                                onChange={(e) => setLpUrl(e.target.value)}
+                                placeholder="https://example.com/landing-page"
+                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none font-medium text-sm"
+                            />
+                            <button
+                                onClick={handleAnalyzeLP}
+                                disabled={isAnalyzingLP || !lpUrl.trim()}
+                                className="flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition disabled:opacity-50 shadow-md"
+                            >
+                                {isAnalyzingLP ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                                {isAnalyzingLP ? 'Analyzing...' : 'Analyze Page'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {isAnalyzingLP && (
+                        <div className="text-center py-16 animate-pulse">
+                            <Monitor className="w-12 h-12 mx-auto mb-4 text-teal-500 opacity-60" />
+                            <p className="text-slate-500 font-medium">Analyzing landing page for CRO opportunities...</p>
+                        </div>
+                    )}
+
+                    {lpAnalysis && !isAnalyzingLP && (
+                        <div className="space-y-6">
+                            {/* Score Banner */}
+                            <div className={`rounded-xl p-6 border-2 flex flex-col md:flex-row items-center gap-6 ${lpAnalysis.overallScore >= 70 ? 'bg-green-50 border-green-200' : lpAnalysis.overallScore >= 45 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`}>
+                                <div className={`w-24 h-24 rounded-full border-4 flex flex-col items-center justify-center shrink-0 font-extrabold ${lpAnalysis.overallScore >= 70 ? 'border-green-500 text-green-700' : lpAnalysis.overallScore >= 45 ? 'border-yellow-500 text-yellow-700' : 'border-red-500 text-red-700'}`}>
+                                    <span className="text-3xl">{lpAnalysis.overallScore}</span>
+                                    <span className="text-xs font-medium opacity-60">/100</span>
+                                </div>
+                                <div>
+                                    <div className={`text-xl font-bold mb-1 ${lpAnalysis.overallScore >= 70 ? 'text-green-800' : lpAnalysis.overallScore >= 45 ? 'text-yellow-800' : 'text-red-800'}`}>
+                                        CRO Score: {lpAnalysis.verdict}
+                                    </div>
+                                    <p className="text-sm text-slate-600 leading-relaxed">{lpAnalysis.summary}</p>
+                                </div>
+                            </div>
+
+                            {/* Checks Grid */}
+                            {lpAnalysis.checks && lpAnalysis.checks.length > 0 && (
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-teal-600" /> CRO Checklist</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {lpAnalysis.checks.map((check: any, i: number) => (
+                                            <div key={i} className={`p-4 rounded-lg border flex items-start gap-3 ${check.status === 'Pass' ? 'bg-green-50 border-green-200' : check.status === 'Fail' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                                                <div className={`shrink-0 mt-0.5 ${check.status === 'Pass' ? 'text-green-600' : check.status === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>
+                                                    {check.status === 'Pass' ? <Check className="w-4 h-4" /> : check.status === 'Fail' ? <X className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold text-sm text-slate-800">{check.criterion}</div>
+                                                    <div className="text-xs text-slate-600 mt-0.5">{check.finding}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Quick Wins */}
+                                {lpAnalysis.quickWins && lpAnalysis.quickWins.length > 0 && (
+                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Zap className="w-5 h-5 text-green-500" /> Quick Wins</h3>
+                                        <ul className="space-y-2">
+                                            {lpAnalysis.quickWins.map((win: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-2 text-sm text-slate-700 bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                                                    <Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" /> {win}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Critical Fixes */}
+                                {lpAnalysis.criticalFixes && lpAnalysis.criticalFixes.length > 0 && (
+                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-red-500" /> Critical Fixes</h3>
+                                        <ul className="space-y-2">
+                                            {lpAnalysis.criticalFixes.map((fix: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-2 text-sm text-slate-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100">
+                                                    <X className="w-4 h-4 text-red-600 shrink-0 mt-0.5" /> {fix}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Quality Score Impact */}
+                            {lpAnalysis.qualityScoreImpact && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-start gap-3">
+                                    <Star className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <div className="font-bold text-blue-900 text-sm mb-1">Quality Score Impact</div>
+                                        <p className="text-sm text-blue-800 leading-relaxed">{lpAnalysis.qualityScoreImpact}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* NEGATIVE KEYWORD LIBRARY MODAL */}
+            {showNegativeLibrary && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowNegativeLibrary(false)}></div>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden relative z-10 flex flex-col animate-fade-in-up">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-red-600" /> Negative Keyword Library
+                            </h3>
+                            <button onClick={() => setShowNegativeLibrary(false)} className="p-2 rounded-full hover:bg-slate-200 transition text-slate-500">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto p-6 space-y-5">
+                            {NEGATIVE_KEYWORD_LIBRARY.map((cat, i) => (
+                                <div key={i} className="border border-slate-200 rounded-xl p-4">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h4 className="font-bold text-slate-800 text-sm">{cat.category}</h4>
+                                        <CopyButton text={cat.keywords.join('\n')} label="Copy All" />
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {cat.keywords.map((kw, j) => (
+                                            <span key={j} className="bg-red-50 text-red-700 border border-red-100 px-2 py-1 rounded text-xs font-medium">
+                                                -{kw}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* AI Edit Modal */}
             {isEditing && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1228,9 +1643,8 @@ const CampaignResults: React.FC<CampaignResultsProps> = ({ campaign, onUpdate })
                             <h3 className="font-bold text-lg text-purple-900 flex items-center gap-2">
                                 <Sparkles className="w-5 h-5 text-purple-600" /> Edit Campaign with AI
                             </h3>
-                            <button onClick={() => setIsEditing(false)} className="p-1 rounded-full hover:bg-purple-200 transition text-purple-600">
-                                <AlertTriangle className="w-5 h-5" /> {/* Use an X icon if available, or just text, wait, I'll use a simple button */}
-                                Close
+                            <button onClick={() => setIsEditing(false)} className="p-2 rounded-full hover:bg-purple-200 transition text-purple-600">
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6">

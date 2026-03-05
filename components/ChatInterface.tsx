@@ -34,6 +34,11 @@ const ChatInterface: React.FC = () => {
   };
 
   useEffect(() => {
+    // Initialize chat session on mount so the first message can be sent
+    chatSessionRef.current = createAdSpecialistChat();
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 

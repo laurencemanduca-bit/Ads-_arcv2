@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { useReactToPrint } from 'react-to-print';
 import { GeneratedMetaCampaign, MetaAd, BudgetScenario, MetaAdSet } from '../types';
-import { Copy, Check, Facebook, RefreshCw, Layers, Target, Settings, MessageCircle, Wand2, Loader2, Image as ImageIcon, ThumbsUp, Heart, MoreHorizontal, Globe, Share2, MessageSquare, ClipboardList, BarChart3, Calculator, Tag, Box, AlertTriangle, Download, Smartphone, Wallet, Thermometer, CalendarClock, Swords, PieChart, TrendingUp, Users, LayoutDashboard, Database, Key, Sparkles, X } from 'lucide-react';
+import { Copy, Check, Facebook, RefreshCw, Layers, Target, Settings, MessageCircle, Wand2, Loader2, Image as ImageIcon, ThumbsUp, Heart, MoreHorizontal, Globe, Share2, MessageSquare, ClipboardList, BarChart3, Calculator, Tag, Box, AlertTriangle, Download, Smartphone, Wallet, Thermometer, CalendarClock, Swords, PieChart, TrendingUp, Users, LayoutDashboard, Database, Key, Sparkles, X, Zap, ShieldCheck, ArrowRight, Clock } from 'lucide-react';
 import { editCampaignWithAI } from '../services/gemini';
 
 interface MetaCampaignResultsProps {
@@ -214,7 +214,7 @@ const FacebookAdPreview: React.FC<{
 };
 
 const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onUpdate }) => {
-    const [activeTab, setActiveTab] = useState<'budget' | 'strategy' | 'creative' | 'setup'>('budget');
+    const [activeTab, setActiveTab] = useState<'budget' | 'strategy' | 'creative' | 'funnel' | 'setup'>('budget');
     const [isPrinting, setIsPrinting] = useState(false);
 
     // PDF Export ref and logic
@@ -298,6 +298,12 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'creative' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
                     <ImageIcon className="w-4 h-4" /> Creative Lab
+                </button>
+                <button
+                    onClick={() => setActiveTab('funnel')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'funnel' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                    <ArrowRight className="w-4 h-4" /> Funnel & Leads
                 </button>
                 <button
                     onClick={() => setActiveTab('setup')}
@@ -738,6 +744,258 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
                             <div className="mt-4 bg-blue-50 p-3 rounded-lg text-xs text-blue-800">
                                 <span className="font-bold uppercase">Testing Plan:</span> {campaign.optimization.testingPlan}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* FUNNEL & LEADS TAB */}
+            {(activeTab === 'funnel' || isPrinting) && (
+                <div className="space-y-8 animate-fade-in print-page-break">
+
+                    {/* Full Funnel Strategy */}
+                    {campaign.fullFunnelStrategy && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-900 to-slate-900 px-6 py-5 flex items-center gap-3">
+                                <Layers className="w-6 h-6 text-blue-300" />
+                                <div>
+                                    <h3 className="font-bold text-white text-lg">Full-Funnel Campaign Strategy</h3>
+                                    <p className="text-blue-200 text-xs">TOF → MOF → BOF blueprint for {campaign.businessName}</p>
+                                </div>
+                            </div>
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {[
+                                    { key: 'topOfFunnel', label: 'Top of Funnel', sublabel: 'Awareness / Prospecting', color: 'border-blue-400 bg-blue-50', badge: 'bg-blue-600', data: campaign.fullFunnelStrategy.topOfFunnel },
+                                    { key: 'middleOfFunnel', label: 'Middle of Funnel', sublabel: 'Consideration / Engagement', color: 'border-purple-400 bg-purple-50', badge: 'bg-purple-600', data: campaign.fullFunnelStrategy.middleOfFunnel },
+                                    { key: 'bottomOfFunnel', label: 'Bottom of Funnel', sublabel: 'Conversion / Remarketing', color: 'border-green-400 bg-green-50', badge: 'bg-green-600', data: campaign.fullFunnelStrategy.bottomOfFunnel },
+                                ].map(({ label, sublabel, color, badge, data }) => data && (
+                                    <div key={label} className={`rounded-xl border-2 ${color} p-5`}>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span className={`${badge} text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider`}>{label}</span>
+                                        </div>
+                                        <div className="text-xs text-slate-400 font-bold uppercase mb-3">{sublabel}</div>
+                                        <div className="space-y-2.5 text-sm">
+                                            <div><span className="font-bold text-slate-700">Objective:</span> <span className="text-slate-600">{data.objective}</span></div>
+                                            <div><span className="font-bold text-slate-700">Creative:</span> <span className="text-slate-600">{data.creative}</span></div>
+                                            <div><span className="font-bold text-slate-700">Audience:</span> <span className="text-slate-600">{data.audience}</span></div>
+                                            <div><span className="font-bold text-slate-700">Budget:</span> <span className="text-slate-600">{data.budget}</span></div>
+                                            {data.keyFormats && data.keyFormats.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 pt-1">
+                                                    {data.keyFormats.map((f: string, i: number) => (
+                                                        <span key={i} className="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded font-medium">{f}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {campaign.fullFunnelStrategy.consolidationRecommendation && (
+                                <div className="mx-6 mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                                    <MessageCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                                    <p className="text-sm text-blue-800 leading-relaxed">{campaign.fullFunnelStrategy.consolidationRecommendation}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ASC+ Configuration */}
+                    {campaign.ascPlusConfig && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                                <div className="flex items-center gap-2">
+                                    <Zap className="w-5 h-5 text-blue-600" />
+                                    <h3 className="font-bold text-slate-800 text-lg">Advantage+ Sales (ASC+) Configuration</h3>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${campaign.ascPlusConfig.recommended ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                        {campaign.ascPlusConfig.recommended ? 'Recommended' : 'Optional'}
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-sm text-slate-600 mb-5 leading-relaxed">{campaign.ascPlusConfig.reasoning}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-3">Learning Phase Requirements</h4>
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">{campaign.ascPlusConfig.learningPhaseRequirements}</div>
+                                    <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-3 mt-4">Budget Scaling Plan</h4>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">{campaign.ascPlusConfig.budgetScalingPlan}</div>
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-3">Audience Exclusions</h4>
+                                    <ul className="space-y-1.5">
+                                        {campaign.ascPlusConfig.audienceExclusions?.map((exc: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100">
+                                                <X className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" /> {exc}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-3 mt-4">Creative Asset Checklist</h4>
+                                    <ul className="space-y-1.5">
+                                        {campaign.ascPlusConfig.creativeAssetChecklist?.map((item: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                                <Check className="w-3.5 h-3.5 text-green-600 shrink-0 mt-0.5" /> {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Lead Form Strategy */}
+                    {campaign.leadFormStrategy?.recommended && (
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div className="bg-gradient-to-r from-green-700 to-teal-700 px-6 py-5 flex items-center gap-3">
+                                <ClipboardList className="w-6 h-6 text-green-200" />
+                                <div>
+                                    <h3 className="font-bold text-white text-lg">Lead Form Strategy</h3>
+                                    <p className="text-green-100 text-xs">Optimized for lead quality, not just volume</p>
+                                </div>
+                            </div>
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Form Type</div>
+                                        <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg text-sm font-bold text-green-800">
+                                            <Check className="w-4 h-4" /> {campaign.leadFormStrategy.formType}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Value Offer</div>
+                                        <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-sm text-slate-700">{campaign.leadFormStrategy.valueOffer}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Thank-You Screen Copy</div>
+                                        <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-sm text-slate-700 italic">"{campaign.leadFormStrategy.thankYouScreenCopy}"</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Offline Conversion Setup</div>
+                                        <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg text-sm text-orange-800">{campaign.leadFormStrategy.offlineConversionSetup}</div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Qualifying Questions</div>
+                                        <ul className="space-y-2">
+                                            {campaign.leadFormStrategy.qualifyingQuestions?.map((q: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-2 text-sm bg-blue-50 border border-blue-100 px-3 py-2 rounded-lg text-blue-800">
+                                                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                                                    {q}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Lead Quality Tips</div>
+                                        <ul className="space-y-1.5">
+                                            {campaign.leadFormStrategy.leadQualityTips?.map((tip: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                                    <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" /> {tip}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* CREATIVE FATIGUE + COMPLIANCE additions to existing tabs */}
+            {(activeTab === 'creative' || isPrinting) && campaign.creativeFatigueSchedule && (
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mt-0 animate-fade-in">
+                    <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                        <Clock className="w-5 h-5 text-purple-600" />
+                        <h3 className="font-bold text-slate-800">Creative Fatigue Schedule</h3>
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{campaign.creativeFatigueSchedule.estimatedLifespanDays} day lifespan</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Refresh Triggers</div>
+                            <ul className="space-y-1.5">
+                                {campaign.creativeFatigueSchedule.refreshTriggers?.map((t: string, i: number) => (
+                                    <li key={i} className="flex items-start gap-2 text-xs text-slate-700 bg-red-50 px-2 py-1.5 rounded border border-red-100">
+                                        <AlertTriangle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> {t}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cycle 1 Assets</div>
+                            <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-sm text-slate-700">{campaign.creativeFatigueSchedule.cycleOneCreatives}</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 mt-3">Cycle 2 Angles</div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {campaign.creativeFatigueSchedule.cycleTwoAngles?.map((a: string, i: number) => (
+                                    <span key={i} className="text-xs bg-purple-50 border border-purple-100 text-purple-700 px-2 py-1 rounded font-medium">{a}</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Scaling Strategy</div>
+                            <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-sm text-green-800">{campaign.creativeFatigueSchedule.scalingStrategy}</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* COMPLIANCE section addition to Setup tab */}
+            {(activeTab === 'setup' || isPrinting) && campaign.complianceFlags && (
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-fade-in">
+                    <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                        <ShieldCheck className="w-5 h-5 text-red-600" />
+                        <h3 className="font-bold text-slate-800">Ad Policy & Compliance</h3>
+                        {campaign.complianceFlags.requiresDeclaration && (
+                            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">Special Category Required</span>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            {campaign.complianceFlags.specialAdCategory && campaign.complianceFlags.specialAdCategory !== 'None' && (
+                                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                                    <div className="font-bold text-red-900 text-sm mb-1 flex items-center gap-2">
+                                        <AlertTriangle className="w-4 h-4" /> Special Ad Category: {campaign.complianceFlags.specialAdCategory}
+                                    </div>
+                                    <p className="text-xs text-red-800">You must declare this category when creating your campaign in Ads Manager. Targeting will be restricted.</p>
+                                </div>
+                            )}
+                            {campaign.complianceFlags.restrictedTargeting?.length > 0 && (
+                                <div>
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Restricted Targeting Options</div>
+                                    <ul className="space-y-1.5">
+                                        {campaign.complianceFlags.restrictedTargeting.map((r: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-xs text-slate-700 bg-amber-50 px-2 py-1.5 rounded border border-amber-100">
+                                                <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" /> {r}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-4">
+                            {campaign.complianceFlags.prohibitedContent?.length > 0 && (
+                                <div>
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Prohibited Content Risks</div>
+                                    <ul className="space-y-1.5">
+                                        {campaign.complianceFlags.prohibitedContent.map((p: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-xs text-slate-700 bg-red-50 px-2 py-1.5 rounded border border-red-100">
+                                                <X className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> {p}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {campaign.complianceFlags.recommendations?.length > 0 && (
+                                <div>
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Compliance Recommendations</div>
+                                    <ul className="space-y-1.5">
+                                        {campaign.complianceFlags.recommendations.map((r: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                                                <Check className="w-3.5 h-3.5 text-green-600 shrink-0 mt-0.5" /> {r}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

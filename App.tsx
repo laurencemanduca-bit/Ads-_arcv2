@@ -12,7 +12,8 @@ import HistoryDashboard from './components/HistoryDashboard';
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
 import ChatInterface from './components/ChatInterface';
-import { Layout, Cpu, Search, Activity, Facebook, Loader2, MessageSquare, ArrowRight, ShieldCheck, AlertCircle, LogOut, Save, Check } from 'lucide-react';
+import BudgetAllocator from './components/BudgetAllocator';
+import { Layout, Cpu, Search, Activity, Facebook, Loader2, MessageSquare, ArrowRight, ShieldCheck, AlertCircle, LogOut, Save, Check, PieChart } from 'lucide-react';
 
 const initialUserInput: UserInput = {
   businessName: '', website: '', industry: '', productService: '', location: '', targetAudience: '', painPoints: '', usps: '', offers: '', competitors: '',
@@ -27,7 +28,7 @@ const initialUserInput: UserInput = {
   crmTool: '', hasCustomerMatch: false, trackingStatus: 'None'
 };
 
-type AppMode = 'generator' | 'audit' | 'history' | 'chat';
+type AppMode = 'generator' | 'audit' | 'history' | 'chat' | 'allocator';
 type Platform = 'google' | 'meta';
 type ViewState = 'landing' | 'login' | 'signup' | 'app';
 
@@ -92,6 +93,7 @@ export default function App() {
     else if (mode === 'audit') title = 'Audit - Ads Architect';
     else if (mode === 'history') title = 'History - Ads Architect';
     else if (mode === 'chat') title = 'AI Chat - Ads Architect';
+    else if (mode === 'allocator') title = 'Budget Allocator - Ads Architect';
     
     document.title = title;
   }, [view, mode, platform]);
@@ -292,6 +294,7 @@ export default function App() {
               <div className="flex bg-slate-100 p-1.5 rounded-2xl shadow-inner border border-slate-200 hidden md:flex">
                 <button onClick={() => {setMode('generator'); setStatus(AppStatus.IDLE); setCurrentFileId(null);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'generator' ? 'bg-white text-blue-700 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Generator</button>
                 <button onClick={() => {setMode('audit'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'audit' ? 'bg-white text-purple-700 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Auditor</button>
+                <button onClick={() => {setMode('allocator'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'allocator' ? 'bg-white text-green-700 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Allocator</button>
                 <button onClick={() => {setMode('chat'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'chat' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Advisor</button>
                 <button onClick={() => {setMode('history'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'history' ? 'bg-white text-slate-800 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Dashboard</button>
               </div>
@@ -304,6 +307,7 @@ export default function App() {
           <div className="flex md:hidden w-full justify-between bg-slate-100 p-1 rounded-xl">
              <button onClick={() => setMode('generator')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'generator' ? 'bg-white shadow' : ''}`}>Gen</button>
              <button onClick={() => setMode('audit')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'audit' ? 'bg-white shadow' : ''}`}>Audit</button>
+             <button onClick={() => setMode('allocator')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'allocator' ? 'bg-white shadow' : ''}`}>Alloc</button>
              <button onClick={() => setMode('chat')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'chat' ? 'bg-white shadow' : ''}`}>Chat</button>
              <button onClick={() => setMode('history')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'history' ? 'bg-white shadow' : ''}`}>Dash</button>
           </div>
@@ -354,7 +358,7 @@ export default function App() {
                 </div>
                 <div className="text-center max-w-lg">
                   <h3 className="text-4xl font-black tracking-tighter uppercase mb-4">Architecting Strategy...</h3>
-                  <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] leading-relaxed">Processing variables with Gemini 3 Pro Reasoning Engine (32K Thought Budget)</p>
+                  <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] leading-relaxed">Processing variables with Gemini 2.5 Pro Reasoning Engine (32K Thought Budget)</p>
                 </div>
               </div>
             )}
@@ -431,6 +435,8 @@ export default function App() {
         {mode === 'history' && <HistoryDashboard onLoadCampaign={handleLoadFromHistory} onLoadAudit={handleLoadFromHistory} />}
 
         {mode === 'chat' && <ChatInterface />}
+
+        {mode === 'allocator' && <BudgetAllocator />}
       </main>
     </div>
   );

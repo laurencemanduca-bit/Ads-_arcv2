@@ -1,8 +1,8 @@
 
 import { GoogleGenAI, Type, Schema, GenerateContentResponse, Chat } from "@google/genai";
 import { GeneratedCampaign, UserInput, AuditReport, KeywordEntry, GeneratedMetaCampaign, ResponsiveSearchAd } from "../types";
-import { GOOGLE_ADS_GUIDE_2026, CAMPAIGN_STRUCTURE_RULES, SMART_BIDDING_GUIDE } from "../src/data/googleAdsKnowledgeBase";
-import { META_ADS_GUIDE_2026, PERFORMANCE_5_CHECKLIST, CREATIVE_SPECS } from "../src/data/metaAdsKnowledgeBase";
+import { GOOGLE_ADS_GUIDE_2026, CAMPAIGN_STRUCTURE_RULES, SMART_BIDDING_GUIDE, DATA_STRENGTH_REQUIREMENTS, ASSET_REQUIREMENTS, NEGATIVE_KEYWORD_STRATEGY, AI_ESSENTIALS_CHECKLIST } from "../src/data/googleAdsKnowledgeBase";
+import { META_ADS_GUIDE_2026, PERFORMANCE_5_CHECKLIST, CREATIVE_SPECS, BIDDING_STRATEGIES, LEAD_FORM_BEST_PRACTICES, FULL_FUNNEL_STRATEGY, SPECIAL_AD_CATEGORIES } from "../src/data/metaAdsKnowledgeBase";
 
 export const ensureApiKey = async () => {
   const win = window as any;
@@ -61,69 +61,219 @@ TONE INSTRUCTIONS:
 
 const CAMPAIGN_TYPE_KNOWLEDGE_BASE: Record<string, string> = {
   'Search': `
-    **CAMPAIGN TYPE: SEARCH (HIGH INTENT)**
-    - **Best For**: Capturing leads actively searching for specific services.
-    - **Structure**: Tight Keyword Themes (STAG).
-    - **Ads**: Responsive Search Ads (15 Headlines, 4 Descriptions).
-    - **Metrics**: CPC, CTR, CPA.
-    `,
+    **CAMPAIGN TYPE: SEARCH (HIGH INTENT) — February 2026 Best Practices**
+
+    ACCOUNT STRUCTURE:
+    - Use STAG model: Single Theme Ad Groups, 5–15 tightly related keywords per group with identical search intent.
+    - Separate Search and Display into different campaigns — never combine them.
+    - Start with Brand + Non-Brand campaigns; scale to 6–10 campaigns.
+    - Turn off: Auto-Apply recommendations, Search Partners, App placements.
+
+    KEYWORD STRATEGY:
+    - ~60% Broad Match + Smart Bidding (for accounts with 50+ monthly conversions).
+    - ~30% Exact Match (brand terms, high-commercial-intent "money keywords").
+    - ~10% Phrase Match (transitional holdover only).
+    - Generate account-level negative keywords: free, cheap, jobs, diy, how to, reviews, wikipedia, scam.
+    - Review Search Terms Report monthly for expansion opportunities.
+
+    RSA REQUIREMENTS (MANDATORY):
+    - EXACTLY 15 headlines + EXACTLY 4 descriptions.
+    - Include primary keywords naturally in 3–5 headlines.
+    - Pin ONLY brand name or legal disclaimers.
+    - Add image assets (+6% CTR), business logo + name (+8% conversions).
+    - Ad Strength target: EXCELLENT (+12% conversions vs. Poor).
+
+    SMART BIDDING:
+    - Target CPA: best for lead gen (requires 30+ conversions/month).
+    - Maximize Conversions: best for new campaigns until 30+ conversions reached.
+    - Target ROAS: best for revenue tracking (requires 50+ conversions/month).
+    - Allow 2–3 week learning period — no adjustments during this phase.
+
+    METRICS: CPC, CTR, CPA, Quality Score, Ad Strength, Impression Share.
+  `,
 
   'PMAX': `
-    **CAMPAIGN TYPE: PERFORMANCE MAX (PMAX)**
-    - **Best For**: Scaling beyond search to YouTube, Display, Gmail, Maps.
-    - **Structure**: "Asset Groups" (Not Ad Groups).
-    - **Targeting**: "Audience Signals" (Not Keywords). Map 'keywords' field to Audience Signals.
-    - **Ads**: A mix of Text, Image, and Video assets.
-    - **Budget**: Requires higher budget for AI learning.
-    `,
+    **CAMPAIGN TYPE: PERFORMANCE MAX (PMAX) — February 2026 Best Practices**
+
+    OVERVIEW:
+    - Runs across ALL Google inventory: Search, Display, YouTube, Discover, Gmail, Maps.
+    - +27% conversions/value at similar CPA/ROAS vs. standard campaigns.
+    - Requires value-based bidding for best results.
+
+    SETUP REQUIREMENTS:
+    - Conversion goals must MATCH your Search campaigns for consistent signals.
+    - Value-based bidding: Maximize Conversion Value + Target ROAS (when tracking revenue).
+    - Maximize Conversions + optional CPA target (when all conversions equal value).
+    - Keep text customization ON and Final URL expansion ON.
+
+    ASSET GROUP STRUCTURE (3–7 per campaign):
+    - Organize by product category or theme — NOT by audience.
+    - Each asset group needs tailored creative + audience signals.
+    - Generate asset groups as the 'adGroups' in the schema.
+
+    MANDATORY CREATIVE ASSETS (PER ASSET GROUP):
+    - 15–20 Images: mix of lifestyle, product, branded, text-free backgrounds.
+    - 5+ Headlines, 5+ Descriptions.
+    - At least 1 video in EACH orientation: horizontal (16:9), vertical (9:16), square (1:1).
+    - Video in all 3 orientations → +20% YouTube conversions. No video = 25–40% worse performance.
+
+    AUDIENCE SIGNALS (map to 'keywords' field in schema with matchType: 'Signal'):
+    - Customer Match: existing customers + high-LTV segments.
+    - Custom Intent: based on top-performing keywords + competitor URLs.
+    - In-Market: relevant purchase-intent categories.
+    - New Customer Only mode: +13% new customer ratio, +19% lower acquisition cost.
+    - Exclude existing customers from acquisition asset groups.
+
+    OPTIMIZATION:
+    - Allow 2–4 weeks learning before significant changes.
+    - Use channel performance reporting to analyze per-channel results.
+
+    METRICS: Conversion Value, ROAS, New Customer Ratio, Asset Group Performance.
+  `,
 
   'Display': `
-    **CAMPAIGN TYPE: DISPLAY (REMARKETING)**
-    - **Best For**: Retargeting website visitors.
-    - **Structure**: Audience-based Ad Groups (e.g. "All Visitors", "Cart Abandoners").
-    - **Targeting**: Custom Intent segments.
-    - **Ads**: Responsive Display Ads (Visual + Text).
-    `,
+    **CAMPAIGN TYPE: DISPLAY (REMARKETING/AWARENESS) — February 2026 Best Practices**
+
+    - Best For: Retargeting website visitors; brand awareness in browsing contexts.
+    - Optimize SEPARATELY from Search with distinct budgets and success metrics.
+    - Structure: Audience-based Ad Groups (e.g., "All Visitors 30D", "Cart Abandoners 7D", "Product Viewers 14D").
+    - Targeting: Custom Intent segments, In-Market audiences, remarketing lists.
+    - Exclude low-quality placements and app inventory to prevent budget waste.
+    - Ads: Responsive Display Ads with high-quality visuals + compelling text.
+    - Focus on visually compelling banners that capture attention in browsing contexts.
+    - Use 180+ day remarketing windows for maximum audience coverage.
+    - METRICS: CPM, CTR, View-Through Conversions, Frequency.
+  `,
 
   'Video': `
-    **CAMPAIGN TYPE: VIDEO (YOUTUBE)**
-    - **Best For**: Awareness & Trust.
-    - **Structure**: Video Ad Groups (Topics/Audiences).
-    - **Targeting**: Topics, Placements (Channels), In-Market Audiences. Map 'keywords' to these targeting types.
-    - **Ads**: Video Ads (Skippable In-Stream, Bumpers).
-    - **Metrics**: CPV (Cost Per View).
-    `,
+    **CAMPAIGN TYPE: VIDEO (YOUTUBE) — February 2026 Best Practices**
+
+    - Best For: Awareness, consideration, trust-building, and video action conversions.
+    - CRITICAL: Produce content in ALL 3 orientations → +20% YouTube conversions.
+      * Horizontal 16:9 (standard YouTube)
+      * Vertical 9:16 (YouTube Shorts, mobile)
+      * Square 1:1 (YouTube feed)
+
+    CAMPAIGN SUBTYPES:
+    - Video Action: drive sales, leads, web traffic (conversion-optimized).
+    - Video Reach: non-skippable awareness (global beta in 2025/2026).
+    - Video View: maximize views with format controls.
+
+    TARGETING (map to 'keywords' field in schema):
+    - Topics (content targeting on channels/videos): matchType = 'Topic'
+    - Channel/Video Placements: matchType = 'Placement'
+    - In-Market Audiences: matchType = 'In-Market'
+    - Affinity Audiences: matchType = 'Affinity'
+
+    CREATIVE REQUIREMENTS:
+    - Hook in first 5 seconds (skippable ads) — most viewers skip after this.
+    - Clear brand presence in first 5 seconds.
+    - Include captions for sound-off viewers.
+    - Leverage creator partnerships to amplify through trusted YouTube creators.
+
+    METRICS: CPV (Cost Per View), VTR (View-Through Rate), Brand Lift, Video Completion Rate.
+  `,
 
   'Shopping': `
-    **CAMPAIGN TYPE: SHOPPING**
-    - **Best For**: E-commerce products.
-    - **Structure**: Product Groups (Brand/Category).
-    - **Targeting**: Negative Keywords only (Standard).
-    - **Ads**: Product Listings (PLAs).
-    `,
+    **CAMPAIGN TYPE: SHOPPING — February 2026 Best Practices**
+
+    - Best For: E-commerce with physical or digital products in Google Merchant Center.
+    - PRODUCT FEED IS THE #1 PERFORMANCE FACTOR — optimize before anything else.
+
+    FEED OPTIMIZATION (generate as ad copy guidance):
+    - Titles: [Brand] + [Product Type] + [Key Attributes] (color, size, material).
+    - Descriptions: 500–5000 chars; include top keywords naturally; cover materials, use cases, specs.
+    - Images: White background for main Shopping image; lifestyle shots as supplemental.
+    - Structured data: GTINs, MPNs, brand, product category — completeness matters.
+
+    CAMPAIGN STRATEGY:
+    - PMax for full automation (recommended for most advertisers).
+    - Standard Shopping for search query visibility and bid control.
+    - Consider running both: PMax handles automation; Standard Shopping provides transparency.
+    - Use Product Studio in Merchant Center for easy imagery updates.
+
+    TARGETING (map to 'keywords' field — Shopping uses only negative keywords):
+    - Generate negative keywords to filter irrelevant traffic.
+    - matchType for Shopping: 'Negative Exact' or 'Negative Phrase'.
+
+    METRICS: ROAS, Revenue, Cost/Conv, Impression Share, Shopping CTR, Benchmark CTR.
+  `,
 
   'DemandGen': `
-    **CAMPAIGN TYPE: DEMAND GEN**
-    - **Best For**: Discovery & Demand Creation (YouTube Shorts, Discover).
-    - **Structure**: Creative Themes.
-    - **Targeting**: Lookalikes & Social Segments.
-    - **Ads**: Visual-first (Image/Video).
-    `,
+    **CAMPAIGN TYPE: DEMAND GEN — February 2026 Best Practices**
+
+    - Part of the Power Pack: AI Max for Search + Performance Max + Demand Gen.
+    - Runs across: YouTube, YouTube Shorts, Discover, Gmail, Google Display Network.
+    - Best For: Demand creation, discovery, top-of-funnel visual storytelling.
+
+    CREATIVE REQUIREMENTS:
+    - High-quality visual assets tailored for EACH placement surface.
+    - YouTube: 9:16 vertical Shorts + 16:9 horizontal.
+    - Discover: 1.91:1 wide or 1:1 square; strong visual + minimal text.
+    - Gmail: Collapsible ad with compelling subject-line-style headline.
+    - Follow the Creative Excellence Guide for Demand Gen.
+
+    AUDIENCE (map to 'keywords' field with matchType: 'Signal'):
+    - Lookalike audiences based on Customer Match lists.
+    - Affinity segments: matchType = 'Affinity'.
+    - In-Market: matchType = 'In-Market'.
+    - Life Events: matchType = 'Life Event'.
+    - Custom Intent segments based on top keywords.
+
+    METRICS: Reach, Video Views, Engagement Rate, Assisted Conversions, New User Rate.
+  `,
 
   'Local': `
-    **CAMPAIGN TYPE: LOCAL / CALL ONLY**
-    - **Best For**: Driving phone calls and store visits.
-    - **Structure**: Service Areas / Locations.
-    - **Targeting**: "Near me" intent.
-    - **Ads**: Call-Only Ads (Phone number focus).
-    `,
+    **CAMPAIGN TYPE: LOCAL / CALL-ONLY — February 2026 Best Practices**
+
+    - Best For: Driving phone calls and in-store visits for local service businesses.
+    - Optimize Google Business Profile FIRST with complete, accurate information.
+    - Use call extensions + location extensions on all Search campaigns.
+
+    TARGETING:
+    - Radius targeting around service area (typical: 10–50 miles/km).
+    - Location bid adjustments for highest-converting zones.
+    - "Near me" intent keywords: "[service] near me", "[service] in [city]", "[service] [zip]".
+
+    AD STRUCTURE:
+    - Call-Only Ads: Phone number is primary CTA.
+    - Headline 1: Primary service (e.g., "Emergency HVAC Repair").
+    - Headline 2: Location or offer (e.g., "Serving Dallas TX" or "Same-Day Service").
+    - Description: Social proof + CTA (e.g., "500+ 5-Star Reviews. Call Now — We Answer 24/7.").
+
+    CALL TRACKING:
+    - Import call conversions with 60+ second duration threshold.
+    - Use Google forwarding numbers for call analytics.
+    - Configure offline conversion imports for booked appointments.
+
+    METRICS: Calls, Call Duration, Cost Per Call, Store Visits, Local Actions.
+  `,
 
   'App': `
-    **CAMPAIGN TYPE: APP**
-    - **Best For**: App Installs.
-    - **Structure**: Automated App Ads.
-    - **Metrics**: CPI (Cost Per Install).
-    `
+    **CAMPAIGN TYPE: APP — February 2026 Best Practices**
+
+    - Best For: Mobile app installs and in-app engagement/purchases.
+    - Set up in-app conversion tracking BEFORE launching campaigns.
+    - Let Google AI optimize placements across Search, Play, YouTube, and Display.
+
+    ASSET REQUIREMENTS:
+    - Text assets: 5 headlines (30 chars max), 5 descriptions (90 chars max).
+    - Images: Mix of 1:1, 1.91:1, and 4:5 aspect ratios.
+    - Videos: 15–30 seconds showing core app experience.
+    - HTML5 assets: Interactive app previews for Display.
+
+    BIDDING:
+    - App Installs: Target CPI (Cost Per Install).
+    - In-App Actions: Target CPA for specific actions (purchase, subscription, etc.).
+    - Target ROAS for revenue-generating apps.
+
+    AUDIENCES (map to 'keywords' field):
+    - Similar audiences to existing users: matchType = 'Lookalike'.
+    - In-market for app category: matchType = 'In-Market'.
+    - Re-engagement for lapsed users: matchType = 'Remarketing'.
+
+    METRICS: CPI, In-App Conversion Rate, Retention Rate, LTV, ROAS.
+  `
 };
 
 // Helper to fetch real-world benchmarks specific to campaign type
@@ -142,7 +292,7 @@ const fetchIndustryBenchmarks = async (industry: string, location: string, campa
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: { tools: [{ googleSearch: {} }] }
     });
@@ -163,7 +313,7 @@ export const analyzeWebsite = async (url: string): Promise<Partial<UserInput>> =
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: { tools: [{ googleSearch: {} }] }
     });
@@ -220,7 +370,7 @@ export const analyzeDiscoveryNotes = async (notes: string): Promise<Partial<User
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: { responseMimeType: "application/json" }
     });
@@ -464,9 +614,66 @@ export const metaCampaignSchema: any = {
         scalingMetrics: { type: Type.ARRAY, items: { type: Type.STRING } }
       },
       required: ["testingPlan", "scalingMetrics"]
+    },
+    fullFunnelStrategy: {
+      type: Type.OBJECT,
+      properties: {
+        topOfFunnel: { type: Type.OBJECT, properties: { objective: { type: Type.STRING }, creative: { type: Type.STRING }, audience: { type: Type.STRING }, budget: { type: Type.STRING }, keyFormats: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["objective", "creative", "audience", "budget", "keyFormats"] },
+        middleOfFunnel: { type: Type.OBJECT, properties: { objective: { type: Type.STRING }, creative: { type: Type.STRING }, audience: { type: Type.STRING }, budget: { type: Type.STRING }, keyFormats: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["objective", "creative", "audience", "budget", "keyFormats"] },
+        bottomOfFunnel: { type: Type.OBJECT, properties: { objective: { type: Type.STRING }, creative: { type: Type.STRING }, audience: { type: Type.STRING }, budget: { type: Type.STRING }, keyFormats: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["objective", "creative", "audience", "budget", "keyFormats"] },
+        consolidationRecommendation: { type: Type.STRING }
+      },
+      required: ["topOfFunnel", "middleOfFunnel", "bottomOfFunnel", "consolidationRecommendation"]
+    },
+    leadFormStrategy: {
+      type: Type.OBJECT,
+      properties: {
+        recommended: { type: Type.BOOLEAN },
+        formType: { type: Type.STRING },
+        qualifyingQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        valueOffer: { type: Type.STRING },
+        thankYouScreenCopy: { type: Type.STRING },
+        leadQualityTips: { type: Type.ARRAY, items: { type: Type.STRING } },
+        offlineConversionSetup: { type: Type.STRING }
+      },
+      required: ["recommended", "formType", "qualifyingQuestions", "valueOffer", "thankYouScreenCopy", "leadQualityTips", "offlineConversionSetup"]
+    },
+    complianceFlags: {
+      type: Type.OBJECT,
+      properties: {
+        specialAdCategory: { type: Type.STRING },
+        requiresDeclaration: { type: Type.BOOLEAN },
+        restrictedTargeting: { type: Type.ARRAY, items: { type: Type.STRING } },
+        prohibitedContent: { type: Type.ARRAY, items: { type: Type.STRING } },
+        recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
+      },
+      required: ["specialAdCategory", "requiresDeclaration", "restrictedTargeting", "prohibitedContent", "recommendations"]
+    },
+    creativeFatigueSchedule: {
+      type: Type.OBJECT,
+      properties: {
+        estimatedLifespanDays: { type: Type.NUMBER },
+        refreshTriggers: { type: Type.ARRAY, items: { type: Type.STRING } },
+        cycleOneCreatives: { type: Type.STRING },
+        cycleTwoAngles: { type: Type.ARRAY, items: { type: Type.STRING } },
+        scalingStrategy: { type: Type.STRING }
+      },
+      required: ["estimatedLifespanDays", "refreshTriggers", "cycleOneCreatives", "cycleTwoAngles", "scalingStrategy"]
+    },
+    ascPlusConfig: {
+      type: Type.OBJECT,
+      properties: {
+        recommended: { type: Type.BOOLEAN },
+        reasoning: { type: Type.STRING },
+        audienceExclusions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        budgetScalingPlan: { type: Type.STRING },
+        learningPhaseRequirements: { type: Type.STRING },
+        creativeAssetChecklist: { type: Type.ARRAY, items: { type: Type.STRING } }
+      },
+      required: ["recommended", "reasoning", "audienceExclusions", "budgetScalingPlan", "learningPhaseRequirements", "creativeAssetChecklist"]
     }
   },
-  required: ["campaignName", "objective", "performance5Score", "budgetAnalysis", "budgetStrategy", "accountStructure", "creativeStrategy", "adSets", "trackingSetup", "optimization"]
+  required: ["campaignName", "objective", "performance5Score", "budgetAnalysis", "budgetStrategy", "accountStructure", "creativeStrategy", "adSets", "trackingSetup", "optimization", "fullFunnelStrategy", "leadFormStrategy", "complianceFlags", "creativeFatigueSchedule", "ascPlusConfig"]
 };
 
 
@@ -574,72 +781,101 @@ export const generateCampaign = async (data: UserInput): Promise<Omit<GeneratedC
      - **Strategy**: Add negative keywords at the campaign or ad group level to refine traffic.
   `;
 
-  const prompt = `Elite Google Ads Architect (2026 Edition). Build a world-class strategy for: ${JSON.stringify(data)}.
-  
-  REAL-TIME MARKET DATA (${userCampaignType} Specific):
+  const prompt = `You are an Elite Google Ads Architect and Direct Response Copywriter (February 2026 edition).
+  Build a comprehensive, production-ready Google Ads campaign for:
+  ${JSON.stringify(data)}
+
+  ============================================================
+  REAL-TIME MARKET DATA (${userCampaignType} — ${data.industry}, ${data.location}):
+  ============================================================
   ${benchmarks}
 
   ${strategicDeepDive}
 
+  ============================================================
+  GOOGLE ADS PLATFORM INTELLIGENCE (2026)
+  ============================================================
   ${GOOGLE_ADS_GUIDE_2026}
+
+  AI ESSENTIALS 2.0 CHECKLIST (evaluate this campaign against each item):
+  ${AI_ESSENTIALS_CHECKLIST.join('\n')}
+
+  SMART BIDDING STRATEGY MATRIX:
+  ${JSON.stringify(SMART_BIDDING_GUIDE, null, 2)}
+
+  ASSET REQUIREMENTS:
+  ${JSON.stringify(ASSET_REQUIREMENTS, null, 2)}
+
+  NEGATIVE KEYWORD STRATEGY:
+  Account-level negatives (ALWAYS include): ${NEGATIVE_KEYWORD_STRATEGY.accountLevel.join(', ')}
+  Plus user-specified: ${data.negativeKeywords || 'none'}
+
+  DATA STRENGTH REQUIREMENTS (evaluate and output score):
+  ${DATA_STRENGTH_REQUIREMENTS.join('\n')}
 
   ${DATA_FOUNDATION_ANALYSIS}
 
   ${NEGATIVE_CONSTRAINTS}
 
+  ============================================================
+  RSA COPYWRITING RULES (STRICT CHARACTER LIMITS — MANDATORY)
+  ============================================================
   ${GOOGLE_ADS_COPY_MASTERY}
 
+  KEYWORD MATCHING STRATEGY (2026):
   ${KEYWORD_MATCHING_GUIDE}
-  
+
   BRAND VOICE: ${data.brandVoice || 'Professional & Trustworthy'}
-  
-  =============================================
-  CRITICAL INSTRUCTIONS FOR: ${userCampaignType.toUpperCase()}
-  =============================================
+
+  ============================================================
+  CAMPAIGN-SPECIFIC RULES FOR: ${userCampaignType.toUpperCase()}
+  ============================================================
   ${campaignKnowledge}
-  
-  CRITICAL DELIVERABLE REQUIREMENTS (MANDATORY):
-  1. **KEYWORDS**: You MUST generate at least 15 HIGH-VOLUME, strictly relevant keywords per Ad Group. 
-     - **DATA ACCURACY**: All Search Volume and Avg CPC numbers MUST align with the provided Benchmarks above. Do not hallucinate $0.10 CPCs if the benchmark is $5.00.
-     - Focus on proven search terms with commercial intent.
-     - Avoid obscure zero-volume keywords.
-     - **MATCH TYPES**: Apply match types strategically based on the ${KEYWORD_MATCHING_GUIDE}.
-       - If Smart Bidding is likely (e.g., "AI Calculated" budget), lean towards **Broad Match** for reach.
-       - If Budget is limited or specific control is needed, use **Phrase/Exact Match**.
-  2. **ADS**: You MUST generate at least 2 distinct Ad Variations (RSAs) per Ad Group.
-     - Variation 1: Direct Offer/Hook focus.
-     - Variation 2: Problem/Solution or Emotional focus.
-  3. **ASSETS**: Ensure you provide at least 5 headlines and 4 descriptions as per the Creative Excellence pillar.
-  
-  **SCHEMA MAPPING INSTRUCTIONS**:
-  The JSON schema uses standard field names ("adGroups", "keywords", "ads"). You MUST map your campaign type concepts to these fields:
-  
-  1. **"adGroups"**:
-     - For PMAX: Generate **ASSET GROUPS**.
-     - For Video: Generate **VIDEO TOPIC GROUPS**.
-     - For Search: Generate **KEYWORD THEMES**.
-  
-  2. **"keywords"** (inside adGroups):
-     - For PMAX: Generate **AUDIENCE SIGNALS** (Interests, Custom Segments). Set 'matchType' to 'Signal'.
-     - For Video: Generate **TARGETING CRITERIA** (Channels, Topics). Set 'matchType' to 'Topic' or 'Placement'.
-     - For Search: Generate standard Keywords. Use 'Broad', 'Phrase', 'Exact'.
-  
-  3. **"ads"**:
-     - For PMAX/Video: Generate Headlines/Descriptions suitable for video/display assets.
-     - For Call-Only: Ensure headlines are call-to-actions (e.g. "Call Now").
+
+  ============================================================
+  DELIVERABLE REQUIREMENTS (ALL MANDATORY)
+  ============================================================
+
+  1. KEYWORDS (per ad group):
+     - Minimum 15 keywords per ad group with commercial intent.
+     - DATA ACCURACY: Search Volume and Avg CPC MUST align with benchmarks above. No hallucinated $0.10 CPCs if benchmark is $5.00.
+     - Match type allocation: ~60% Broad (for Smart Bidding scale), ~30% Exact (brand/high-control), ~10% Phrase.
+     - Include negative keywords array per ad group.
+
+  2. ADS (per ad group — minimum 2 RSA variations):
+     - Variation 1: Direct Offer/Hook — benefit-led, numbers-first.
+     - Variation 2: Problem/Solution — pain-aware, emotional resolution.
+     - MANDATORY: EXACTLY 15 headlines + EXACTLY 4 descriptions per RSA.
+     - Ad Strength target: Excellent. No generic phrases.
+     - Image assets suggestions in 'paths' field (for image asset guidance).
+
+  3. BIDDING STRATEGY:
+     - Select from SMART_BIDDING_GUIDE based on: tracking status (${data.trackingStatus}), budget (${data.monthlyBudget || 'unknown'}), conversions history.
+     - If tracking is 'None' or 'Basic': recommend Maximize Clicks → transition to Maximize Conversions after data.
+     - Include specific threshold (conversion count) before switching strategies.
+
+  4. CONVERSION TRACKING:
+     - Output specific enhanced conversions setup instructions.
+     - Data Strength score (0–100) based on their current setup.
+     - If CRM is ${data.crmTool || 'None'}: include CRM-specific offline conversion import instructions.
+
+  5. SCHEMA MAPPING:
+     - adGroups: Search=Keyword Themes; PMax=Asset Groups; Video=Topic Groups; Shopping=Product Groups; DemandGen=Creative Themes.
+     - keywords: Search=standard keywords (Broad/Phrase/Exact); PMax=Audience Signals (matchType:'Signal'); Video=Topics/Placements (matchType:'Topic'/'Placement').
+     - ads: All campaign types use the RSA schema; adapt headline/description content for the campaign type.
 
   CONTEXT & BUDGET:
-  - ${budgetInstruction}
-  
-  STRUCTURE INSTRUCTIONS:
+  ${budgetInstruction}
+
+  STRUCTURE:
   ${adGroupInstruction}
   ${adFormatPref}
 
-  Return JSON according to the schema.`;
+  Return strictly valid JSON matching the schema.`;
 
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-2.5-pro",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -651,9 +887,6 @@ export const generateCampaign = async (data: UserInput): Promise<Omit<GeneratedC
   return JSON.parse(cleanJson(response.text || "{}"));
 };
 
-// ... existing Meta generation ...
-// (Meta generation is generally stable with existing prompt, no major changes needed here 
-//  unless user specifically flagged Meta issues, but the prompt focused on Google Ads campaign types)
 export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
   await ensureApiKey();
   const ai = getClient();
@@ -696,97 +929,131 @@ export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
   2. If Customer Match is 'Available', you MUST recommend creating a "Customer Match" audience segment in the 'targeting' section of Ad Sets.
   `;
 
-  const prompt = `You are a world-class Direct Response Copywriter & Meta Ads Strategist (Ogilvy meets TikTok Creator).
-  
-  OBJECTIVE: Create a high-converting Facebook & Instagram campaign for: ${JSON.stringify(data)}.
-  
-  REAL-TIME BENCHMARKS (Industry Specific): ${benchmarks}
-  
+  const isLeadsObjective = (data.primaryGoal || '').toLowerCase().includes('lead') || (data.industry || '').match(/hvac|plumb|roof|legal|mortgage|dental|medical|insurance|contractor/i);
+  const isEcomObjective = (data.primaryGoal || '').toLowerCase().includes('sale') || (data.primaryGoal || '').toLowerCase().includes('ecom');
+
+  const prompt = `You are a world-class Meta Ads Strategist and Direct Response Copywriter — expert in the 2026 Meta platform (Ogilvy-level strategy meets UGC-native creative execution).
+
+  OBJECTIVE: Build a comprehensive, production-ready Facebook & Instagram campaign for:
+  ${JSON.stringify(data)}
+
+  REAL-TIME BENCHMARKS (${data.industry} industry, ${data.location}):
+  ${benchmarks}
+
   ${strategicDeepDive}
-  
+
+  ============================================================
+  META ADS PLATFORM INTELLIGENCE (2026)
+  ============================================================
   ${META_ADS_GUIDE_2026}
 
-  PERFORMANCE 5 FRAMEWORK CHECKLIST:
+  PERFORMANCE 5 FRAMEWORK (score each pillar 0–10 in the schema):
   ${PERFORMANCE_5_CHECKLIST.join('\n')}
 
   CREATIVE SPECS REFERENCE:
   ${JSON.stringify(CREATIVE_SPECS, null, 2)}
 
-  ${META_DATA_FOUNDATION_ANALYSIS}
-  
-  ${NEGATIVE_CONSTRAINTS}
-  
-  ELITE COPYWRITING FRAMEWORK (FOLLOW EXACTLY — THIS IS THE MOST IMPORTANT SECTION):
+  BIDDING STRATEGIES:
+  ${JSON.stringify(BIDDING_STRATEGIES, null, 2)}
 
-  **HEADLINE** (ABSOLUTE MAX 40 chars — you MUST count every character including spaces):
-  - Names a specific benefit or concrete outcome. Numbers always outperform vague adjectives.
-  - Proven formulas: "[Number] [Result] in [Timeframe]" | "Finally: [Specific Benefit]" | "Stop [Pain]. Get [Gain]." | "Free [High-Value Thing] for [Target]"
-  - ✅ GOOD: "Get More Leads in 48 Hours" (26 chars) | "Finally Debt-Free This Year" (27 chars) | "50% Off Ends Sunday" (19 chars)
-  - ❌ BAD (too vague): "Transform Your Business Today" | "Innovative Solutions For You" | "Take It to the Next Level"
+  LEAD FORM BEST PRACTICES:
+  ${JSON.stringify(LEAD_FORM_BEST_PRACTICES, null, 2)}
+
+  FULL-FUNNEL FRAMEWORK:
+  ${JSON.stringify(FULL_FUNNEL_STRATEGY, null, 2)}
+
+  SPECIAL AD CATEGORIES (check if applicable):
+  ${SPECIAL_AD_CATEGORIES.join('\n')}
+
+  ${META_DATA_FOUNDATION_ANALYSIS}
+
+  ${NEGATIVE_CONSTRAINTS}
+
+  ============================================================
+  ELITE COPYWRITING FRAMEWORK — FOLLOW EXACTLY
+  ============================================================
+
+  **HEADLINE** (ABSOLUTE MAX 40 chars — count every character including spaces):
+  - Specific benefit or concrete outcome. Numbers beat vague adjectives.
+  - Formulas: "[Number] [Result] in [Timeframe]" | "Finally: [Benefit]" | "Stop [Pain]. Get [Gain]." | "Free [High-Value Thing] for [Target]"
+  - GOOD: "Get More Leads in 48 Hours" (26) | "50% Off Ends Sunday" (19) | "3 Leads Guaranteed or Free" (26)
+  - BAD: "Transform Your Business Today" | "Innovative Solutions For You"
 
   **DESCRIPTION** (ABSOLUTE MAX 30 chars — count every character):
-  - Reinforce the CTA or add urgency/scarcity. One punchy phrase.
-  - ✅ GOOD: "Free estimate. No pressure." (28) | "Limited spots—book now." (23) | "No contracts. Cancel anytime." (29)
+  - One punchy phrase reinforcing CTA or urgency.
+  - GOOD: "Free estimate. No pressure." (27) | "Limited spots—book now." (23)
 
-  **PRIMARY TEXT** (The highest-leverage element. Write it like a mini sales letter, not ad copy):
-  Format with blank lines between each paragraph. Total: 150–500 characters. Never one wall of text.
+  **PRIMARY TEXT** (Write like a mini sales letter, not ad copy. 150–500 characters total. Blank line between each paragraph):
 
-  MANDATORY STRUCTURE — follow this exact order:
+  MANDATORY 5-PARAGRAPH STRUCTURE:
 
-  🪝 PARAGRAPH 1 — SCROLL-STOPPING HOOK (1 sentence, max 2):
-  Make them feel seen, shocked, or curious. Choose ONE formula:
-    → Pain mirror: "Still [paying too much / wasting time on / struggling with X] without getting [desired result]?"
+  PARAGRAPH 1 — SCROLL-STOPPING HOOK (1–2 sentences):
+  Make them feel seen, shocked, or curious. Choose ONE:
+    → Pain mirror: "Still [struggling with X] without [desired result]?"
     → Bold claim: "We've helped [specific number] [target audience] [specific result] in [timeframe]."
-    → Counterintuitive: "The reason your [X] isn't working has nothing to do with [what they think]."
+    → Counterintuitive: "The reason your [X] isn't working has nothing to do with [common belief]."
 
-  😤 PARAGRAPH 2 — AGITATE THE PAIN (1-2 sentences):
-  Name their exact frustration using their own language. Be visceral and specific. No fluff.
+  PARAGRAPH 2 — AGITATE THE PAIN (1–2 sentences):
+  Name their exact frustration using their own language. Visceral and specific. No fluff.
 
-  💡 PARAGRAPH 3 — YOUR SOLUTION (2-3 sentences):
-  What you do + your unique mechanism. Include ONE concrete number or stat (not a range). "We don't guess — we [specific process that makes you different]."
+  PARAGRAPH 3 — YOUR SOLUTION (2–3 sentences):
+  What you do + your unique mechanism. Include ONE concrete number or stat. "We don't guess — we [specific differentiating process]."
 
-  ⭐ PARAGRAPH 4 — SOCIAL PROOF (1 sentence):
-  One credibility signal: customer count, star rating, award, specific case study result.
+  PARAGRAPH 4 — SOCIAL PROOF (1 sentence):
+  Customer count, star rating, award, or specific case study result.
 
-  👉 PARAGRAPH 5 — FRICTIONLESS CTA (1-2 sentences):
+  PARAGRAPH 5 — FRICTIONLESS CTA (1–2 sentences):
   Tell them exactly what to do AND what they get. Make the next step obvious and low-risk.
   Example: "Click 'Learn More' → fill out our 60-second form → get your custom quote by tomorrow morning."
 
-  EMOJI RULES: Max 2 emojis in entire primary text. Use ✅ for social proof, 🔥 for urgency. NO decorative emoji spam.
+  EMOJI RULES: Max 2 emojis in entire primary text. Use for social proof or urgency only. NO decorative emoji spam.
   TONE: Confident expert texting a friend. Short sentences. Active voice. Zero corporate speak.
 
-  **MANDATORY COPY ANGLE DIVERSITY — EACH AD SET MUST USE A DIFFERENT PSYCHOLOGICAL DRIVER**:
+  MANDATORY COPY ANGLE DIVERSITY — EACH AD SET MUST USE A DIFFERENT PSYCHOLOGICAL DRIVER:
   - Ad Set 1 → PAIN/PROBLEM ANGLE: Open by naming the specific frustration. Dig into it. Offer relief only at the end.
   - Ad Set 2 → DREAM OUTCOME ANGLE: Open with the vivid after-state. Paint their ideal result first, then show how.
   - Ad Set 3 → AUTHORITY/PROOF ANGLE: Open with a credential, number, or case study result. Build trust before selling.
 
-  POWER WORDS (weave in naturally, don't stuff): Proven, Guaranteed, Free, Finally, Stop, Warning, Discover, Exclusive, Limited, Save, Secret, Real, Instant, Zero [risk/hassle/contracts].
-  ABSOLUTELY FORBIDDEN PHRASES (instant failure): "game-changer", "seamless experience", "cutting-edge", "take your business to the next level", "in today's landscape", "innovative solution", "leverage synergies", "empower your brand".
+  POWER WORDS (weave in naturally): Proven, Guaranteed, Free, Finally, Stop, Warning, Discover, Exclusive, Limited, Save, Secret, Real, Instant, Zero [risk/hassle/contracts].
+  FORBIDDEN PHRASES: "game-changer", "seamless experience", "cutting-edge", "take your business to the next level", "in today's landscape", "innovative solution", "leverage synergies", "empower your brand".
 
-  **Instagram Nuance**: End CTA with "Link in bio ↑" or "Tap the link below." Slightly warmer, more personal tone. Shorter sentences.
-  
-  IMAGE PROMPT RULES:
-  - Generative AI prompts must be descriptive enough to create "Instagram-ready" visuals without editing.
-  - Include specific lighting (e.g. "Cinematic teal and orange", "Natural window light").
-  - Focus on *Outcome* or *Emotion*.
-  
+  Instagram Nuance: End CTA with "Link in bio" or "Tap the link below." Warmer, more personal tone. Shorter sentences.
+
+  IMAGE PROMPT RULES (for 'visualDescription' field):
+  - Write a DETAILED, SELF-CONTAINED generative AI prompt (Midjourney/Imagen quality).
+  - STRUCTURE: [Subject/Action] + [Environment/Background] + [Lighting/Mood] + [Style/Camera] + [Text Requirement if needed].
+  - UGC style: "iPhone photography, raw, authentic, selfie style, natural light."
+  - Cinematic style: "85mm lens, f/1.8, cinematic lighting, 4K."
+  - Focus on Outcome or Emotion, not product features.
+
+  ============================================================
+  SCHEMA FIELD INSTRUCTIONS
+  ============================================================
+
+  'fullFunnelStrategy': Build a complete TOF/MOF/BOF plan with specific objectives, creative types, audiences, budget splits, and format recommendations for this specific business.
+
+  'leadFormStrategy': ${isLeadsObjective ? 'REQUIRED — this is a lead gen business. Provide Higher Intent form type, 3 qualifying multiple-choice questions specific to this industry, a compelling value offer, thank-you screen copy, and offline conversion setup instructions.' : 'Set recommended: false and provide basic guidance.'}
+
+  'complianceFlags': Analyze whether this business (${data.industry}, ${data.businessName}) requires a Special Ad Category declaration. Flag any prohibited content risks. Mortgage = Credit/Housing. Law firms = may require Housing/Employment depending on practice area.
+
+  'creativeFatigueSchedule': Based on the 21-day average lifespan, provide a realistic refresh schedule with frequency-based triggers, cycle 1 creative count, cycle 2 angle variations, and a scaling strategy.
+
+  'ascPlusConfig': ${isEcomObjective ? 'STRONGLY recommend ASC+ for this e-commerce/sales objective.' : 'Recommend based on objective and data maturity.'} Include audience exclusion list, budget scaling plan (20–30% increments), learning phase requirements (50+ conversions/week), and a creative asset checklist.
+
+  'trackingSetup': ${META_DATA_FOUNDATION_ANALYSIS} Include specific capiInstructions for their platform (${data.crmTool || 'generic'}). Emphasize Event Match Quality target of 6.0+.
+
   BUDGET CONTEXT: ${budgetInstruction}
-  
+
   STRUCTURE INSTRUCTIONS:
-  - You MUST output the "Two-Campaign System" in the 'accountStructure' field.
+  - Output the recommended account structure in 'accountStructure'.
   - ${adSetInstruction}
-  - FOR 'visualDescription':
-    - You are an expert AI Prompt Engineer for Midjourney/Imagen.
-    - Write a DETAILED, SELF-CONTAINED image prompt.
-    - STRUCTURE: [Subject/Action] + [Environment/Background] + [Lighting/Mood] + [Style/Camera] + [Text Requirement].
-    - STYLE: If 'UGC' is selected, specify "iPhone photography, raw, authentic, selfie style". If 'Cinematic', specify "85mm lens, f/1.8, cinematic lighting, 4k".
-    - TEXT: If the ad needs text IN the image, specify: 'The text "OFFER" appears clearly on...'.
-  
-  Return strictly JSON matching the schema.`;
+  - Each ad set must have 2+ ads with distinct copy angles.
+
+  Return strictly valid JSON matching the schema.`;
 
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-2.5-pro",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -801,7 +1068,7 @@ export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
 export const createAdSpecialistChat = () => {
   const ai = getClient();
   return ai.chats.create({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-flash',
     config: {
       tools: [{ googleSearch: {} }],
       systemInstruction: `You are an elite Google Ads and Meta Ads Strategist (2026 Edition).
@@ -907,8 +1174,28 @@ export const generateAudit = async (dataBlob: string): Promise<any> => {
   };
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: `Detailed account audit for: ${dataBlob}. Identify budget waste and scaling winners. Return strictly JSON matching the schema.`,
+    model: "gemini-2.5-pro",
+    contents: `You are an elite Google Ads auditor with 15+ years of PPC experience. Your job is to provide a brutally honest, actionable account audit.
+
+ACCOUNT DATA TO AUDIT:
+${dataBlob}
+
+AUDIT FRAMEWORK:
+1. **Health Score (0-100)**: Score each component: Keywords Quality, Ad Copy Quality, Bid Strategy, Audience Targeting, Conversion Tracking, Account Structure, Budget Efficiency, Landing Page.
+2. **Benchmark Analysis**: Compare every provided metric (CTR, CPC, CPA, ROAS, Conv Rate, Impression Share) against 2025/2026 industry standards. Be specific about the industry if mentioned.
+3. **Wasted Spend Analysis**: Identify specific categories of waste: irrelevant search terms, poor match types, underperforming ad groups, bid strategy misalignment, geographic waste, device bid adjustments, dayparting gaps.
+4. **Opportunities**: Rank by ROI impact.
+   - Quick Wins (< 1 week to implement, high impact)
+   - Medium Term (1-4 weeks)
+   - Strategic (1-3 months)
+5. **Recommendations**:
+   - Keywords: Which to pause (below Quality Score threshold or high CPA), which to scale (ROAS > target), which to add (gaps in coverage)
+   - Ad Copy: Specific headline/description improvements based on what's underperforming
+   - Bid Strategy: Smart Bidding recommendation based on data maturity
+   - Structure: Campaign/ad group restructuring recommendations
+6. **Action Plan**: Prioritized 30-60-90 day roadmap with specific steps.
+
+IMPORTANT: Use real industry benchmarks. If no industry is specified, use general B2B/B2C averages. Be specific and quantitative wherever possible. Return strictly JSON matching the schema.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: auditSchema,
@@ -940,25 +1227,26 @@ export const generateMoreKeywords = async (industry: string, location: string, t
   try {
     // Use Google Search Tool to get accurate volume/CPC data for the specific niche
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: `Generate 5-10 NEW, high-intent Google Ads keywords/signals for:
             Industry: ${industry}
             Location: ${location}
             Theme: ${theme}
-            
+
             **CRITICAL DATA REQUIREMENT:**
-            - Use Google Search to find REAL-TIME Search Volume trends and CPC ranges for this specific niche in 2025/2026.
-            - Do not guess. If high competition, show high CPC.
-            
+            - Use your real-world knowledge of search volumes and CPC ranges for this specific niche.
+            - Do NOT use generic placeholder values. Be industry-specific.
+            - High-competition niches (legal, medical, insurance, home services) have CPCs of $5-$80+.
+            - Use realistic monthly search volume estimates (e.g., "1,000-10,000/mo" not just "High").
+
             Constraints:
             - STRICTLY EXCLUDE these existing terms: ${existingKeywords.join(', ')}.
             - Focus on commercial/transactional intent.
-            
+
             Return purely a JSON Array matching the schema.`,
       config: {
         responseMimeType: "application/json",
-        responseSchema: schema as any,
-        tools: [{ googleSearch: {} }]
+        responseSchema: schema as any
       }
     });
 
@@ -986,6 +1274,255 @@ export const extractMetricsFromImage = async (base64Image: string): Promise<any>
   return JSON.parse(cleanJson(response.text || "{}"));
 }
 
+// NEW: Google Ads Scripts Generator
+export const generateAdsScripts = async (campaign: GeneratedCampaign): Promise<{ name: string; category: string; description: string; difficulty: string; code: string; }[]> => {
+  await ensureApiKey();
+  const ai = getClient();
+
+  const schema = {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        name: { type: Type.STRING },
+        category: { type: Type.STRING },
+        description: { type: Type.STRING },
+        difficulty: { type: Type.STRING },
+        code: { type: Type.STRING }
+      },
+      required: ["name", "category", "description", "difficulty", "code"]
+    }
+  };
+
+  const prompt = `You are a Google Ads Scripts expert. Generate 5 production-ready, copy-paste Google Ads Scripts for this campaign:
+
+Business: ${campaign.businessName}
+Industry: ${campaign.industry}
+Campaign Type: ${campaign.strategy?.campaignType || 'Search'}
+Bid Strategy: ${campaign.strategy?.biddingStrategy || 'Maximize Conversions'}
+Monthly Budget: ${campaign.budgetAnalysis?.recommendation?.monthlyBudget || 'Unknown'}
+Target CPA: ${campaign.budgetAnalysis?.maxCpaAnalysis?.targetCpa || 'Unknown'}
+
+Generate EXACTLY these 5 scripts:
+
+1. **Budget Pacing Alert** (category: "Budget") - Monitor daily spend vs pace and email an alert if more than 20% off track. User configures: EMAIL_ADDRESS, DAILY_BUDGET.
+
+2. **Search Term Auto-Negatives** (category: "Keywords") - Scan last 7 days search terms. Auto-add as campaign-level negatives any terms containing a configurable blocklist (jobs, free, diy, etc.) or terms with >5 clicks and 0 conversions. User configures: CAMPAIGN_NAME_CONTAINS, NEGATIVE_KEYWORDS_LIST, MIN_CLICKS_BEFORE_NEGATIVE.
+
+3. **Quality Score Reporter** (category: "Quality") - Pull keywords with QS below threshold. Log to a Google Spreadsheet with: Campaign, Ad Group, Keyword, QS, Expected CTR, Ad Relevance, Landing Page Exp. User configures: SPREADSHEET_URL, MIN_QS_THRESHOLD.
+
+4. **CPA-Based Bid Adjuster** (category: "Bidding") - For manual CPC: raise bids by 15% where CPA < Target CPA, lower by 15% where CPA > Target CPA * 1.5. User configures: TARGET_CPA, MAX_BID, MIN_BID, CAMPAIGN_NAME_FILTER.
+
+5. **Dayparting Bid Optimizer** (category: "Bidding") - Analyze last 30 days conversion rate by hour. Set +20% bid adj on top-25% hours, -20% on bottom-25% hours. User configures: CAMPAIGN_NAME, LOOKBACK_DAYS.
+
+For each script:
+- Start with a CONFIG block with ALL user-configurable variables (with comments)
+- Write complete working JavaScript using Google Ads Scripts API (AdsApp, MccApp, etc.)
+- Use proper API calls: AdsApp.campaigns(), AdsApp.keywords(), etc.
+- Include try/catch error handling
+- Add inline comments explaining key logic
+- Code should be 40-80 lines
+
+Return JSON: name, category ("Budget"|"Keywords"|"Quality"|"Bidding"), description (1-2 sentences), difficulty ("Beginner"|"Intermediate"|"Advanced"), code.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: { responseMimeType: "application/json", responseSchema: schema as any }
+    });
+    const parsed = JSON.parse(cleanJson(response.text || "[]"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("Script generation failed", e);
+    return [];
+  }
+};
+
+// NEW: Landing Page CRO Analyzer
+export const analyzeLandingPage = async (url: string, businessName: string, industry: string, goal: string): Promise<any> => {
+  await ensureApiKey();
+  const ai = getClient();
+
+  // Step 1: Research the URL with grounding
+  let urlResearch = "URL research unavailable.";
+  try {
+    const searchRes = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Research this landing page for a PPC conversion audit: ${url}\nBusiness: ${businessName} (${industry})\n\nDescribe: page headline, main CTA button text, form fields visible, trust signals (testimonials, star ratings, certifications, guarantees), estimated page speed, mobile optimization signals, and overall first impression for someone clicking an ad.`,
+      config: { tools: [{ googleSearch: {} }] }
+    });
+    urlResearch = searchRes.text || urlResearch;
+  } catch { /* use fallback */ }
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      overallScore: { type: Type.NUMBER },
+      verdict: { type: Type.STRING },
+      estimatedCvrImprovement: { type: Type.STRING },
+      checks: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            criterion: { type: Type.STRING },
+            status: { type: Type.STRING },
+            note: { type: Type.STRING }
+          },
+          required: ["criterion", "status", "note"]
+        }
+      },
+      wins: { type: Type.ARRAY, items: { type: Type.STRING } },
+      criticalFixes: { type: Type.ARRAY, items: { type: Type.STRING } },
+      recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
+    },
+    required: ["overallScore", "verdict", "checks", "wins", "criticalFixes", "recommendations", "estimatedCvrImprovement"]
+  };
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `CRO Landing Page Audit for PPC.
+Business: ${businessName} (${industry})
+Campaign Goal: ${goal}
+URL: ${url}
+
+Page Research: ${urlResearch}
+
+Score 0-100 and evaluate these 8 criteria (status MUST be exactly "Pass", "Fail", or "Improve"):
+1. Message Match - Does the LP headline align with what the ad likely promises?
+2. Above-Fold CTA - Is the primary CTA visible without scrolling?
+3. Load Speed - Is the page optimized for fast load?
+4. Mobile UX - Is it mobile-first designed?
+5. Trust Signals - Reviews, guarantees, certifications present?
+6. Form Simplicity - Short form (< 5 fields) if lead gen goal?
+7. Value Proposition - Is the main benefit clear within 3 seconds?
+8. Keyword Relevance - Does page content match campaign keyword themes?
+
+criticalFixes = things that directly hurt Google Quality Score or CVR and must be fixed immediately.
+wins = what the page does well.
+estimatedCvrImprovement = "X-Y%" if all critical fixes are applied.
+
+Return JSON.`,
+    config: { responseMimeType: "application/json", responseSchema: schema as any }
+  });
+  return JSON.parse(cleanJson(response.text || "{}"));
+};
+
+// NEW: Live Competitor Ad Intelligence
+export const fetchLiveCompetitorAds = async (businessName: string, keywords: string[], location: string): Promise<any[]> => {
+  await ensureApiKey();
+  const ai = getClient();
+  const topKeywords = keywords.slice(0, 5).join('", "');
+
+  let rawSearch = "";
+  try {
+    const searchRes = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Search for businesses currently running Google Ads for these keywords in ${location}: "${topKeywords}".\n\nExclude "${businessName}" itself. For each competitor found (aim for 4-6 competitors), identify:\n- Company/Brand name\n- Their main ad headline (the blue clickable title)\n- Their ad description copy\n- Their display URL\n- The psychological angle they use (FEAR/LOSS, PRICE/VALUE, AUTHORITY/TRUST, URGENCY/SCARCITY, SOCIAL_PROOF, BENEFIT/OUTCOME)\n- Their most obvious weakness or gap in messaging\n\nBe specific with actual ad copy where possible.`,
+      config: { tools: [{ googleSearch: {} }] }
+    });
+    rawSearch = searchRes.text || "";
+  } catch { return []; }
+
+  if (!rawSearch) return [];
+
+  const schema = {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        competitor: { type: Type.STRING },
+        headline: { type: Type.STRING },
+        description: { type: Type.STRING },
+        displayUrl: { type: Type.STRING },
+        angle: { type: Type.STRING },
+        weakness: { type: Type.STRING }
+      },
+      required: ["competitor", "headline", "description", "displayUrl", "angle", "weakness"]
+    }
+  };
+
+  try {
+    const parseRes = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Extract structured competitor ad data from this research and return as JSON array:\n\n${rawSearch}`,
+      config: { responseMimeType: "application/json", responseSchema: schema as any }
+    });
+    const parsed = JSON.parse(cleanJson(parseRes.text || "[]"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+};
+
+// NEW: Multi-Platform Budget Allocator
+export const generateMultiPlatformAllocation = async (totalBudget: string, goal: string, industry: string, businessInfo: string): Promise<any> => {
+  await ensureApiKey();
+  const ai = getClient();
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      summary: { type: Type.STRING },
+      funnelStrategy: { type: Type.STRING },
+      allocations: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            platform: { type: Type.STRING },
+            percentage: { type: Type.STRING },
+            amount: { type: Type.STRING },
+            reasoning: { type: Type.STRING },
+            expectedLeads: { type: Type.STRING },
+            expectedCpa: { type: Type.STRING },
+            keyMetric: { type: Type.STRING },
+            topTip: { type: Type.STRING }
+          },
+          required: ["platform", "percentage", "amount", "reasoning", "expectedLeads", "expectedCpa", "keyMetric", "topTip"]
+        }
+      },
+      warningFlags: { type: Type.ARRAY, items: { type: Type.STRING } },
+      priorityOrder: { type: Type.ARRAY, items: { type: Type.STRING } }
+    },
+    required: ["summary", "funnelStrategy", "allocations", "warningFlags", "priorityOrder"]
+  };
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-pro",
+    contents: `You are a senior paid media strategist. Recommend an optimal multi-platform budget allocation.
+
+Total Monthly Budget: ${totalBudget}
+Primary Goal: ${goal}
+Industry: ${industry}
+Business Context: ${businessInfo}
+
+Consider these platforms (only include ones appropriate for this budget/goal/industry):
+- Google Search Ads (high intent, bottom-funnel)
+- Google Performance Max (omnichannel AI, needs data to work)
+- Meta Ads - Facebook+Instagram (social, awareness, retargeting, cold audience)
+- YouTube Ads (video, awareness, remarketing)
+- Microsoft/Bing Ads (B2B, older demographic, lower CPC, good for branded terms)
+- LinkedIn Ads (B2B ONLY - $6-12 CPCs, min $3k/mo to be effective - skip if B2C)
+- TikTok Ads (consumer products, younger demographic, creative-heavy)
+
+Rules:
+- Don't recommend platforms where budget is too low to generate meaningful data
+- Each "amount" must be a specific dollar figure (e.g., "$2,400/mo")
+- Use realistic 2025/2026 industry CPA benchmarks
+- topTip = the single most important tactic for success on that platform
+- warningFlags = risks or things that could waste money
+- priorityOrder = recommended launch sequence (what to start first)
+
+Return JSON.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: schema as any,
+      thinkingConfig: { thinkingBudget: 8192 }
+    }
+  });
+  return JSON.parse(cleanJson(response.text || "{}"));
+};
+
 export const editCampaignWithAI = async (campaign: any, editInstruction: string, platform: 'google' | 'meta'): Promise<any> => {
   await ensureApiKey();
   const ai = getClient();
@@ -1009,7 +1546,7 @@ INSTRUCTIONS:
 Return ONLY the updated JSON object with the same schema as the input.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-2.5-pro",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
