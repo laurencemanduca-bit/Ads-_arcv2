@@ -13,7 +13,8 @@ import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
 import ChatInterface from './components/ChatInterface';
 import BudgetAllocator from './components/BudgetAllocator';
-import { Layout, Cpu, Search, Activity, Facebook, Loader2, MessageSquare, ArrowRight, ShieldCheck, AlertCircle, LogOut, Save, Check, PieChart } from 'lucide-react';
+import GoogleAdsAnalytics from './components/GoogleAdsAnalytics';
+import { Layout, Cpu, Search, Activity, Facebook, Loader2, MessageSquare, ArrowRight, ShieldCheck, AlertCircle, LogOut, Save, Check, PieChart, BarChart3 } from 'lucide-react';
 
 const initialUserInput: UserInput = {
   businessName: '', website: '', industry: '', productService: '', location: '', targetAudience: '', painPoints: '', usps: '', offers: '', competitors: '',
@@ -28,7 +29,7 @@ const initialUserInput: UserInput = {
   crmTool: '', hasCustomerMatch: false, trackingStatus: 'None'
 };
 
-type AppMode = 'generator' | 'audit' | 'history' | 'chat' | 'allocator';
+type AppMode = 'generator' | 'audit' | 'history' | 'chat' | 'allocator' | 'analytics';
 type Platform = 'google' | 'meta';
 type ViewState = 'landing' | 'login' | 'signup' | 'app';
 
@@ -94,7 +95,8 @@ export default function App() {
     else if (mode === 'history') title = 'History - Ads Architect';
     else if (mode === 'chat') title = 'AI Chat - Ads Architect';
     else if (mode === 'allocator') title = 'Budget Allocator - Ads Architect';
-    
+    else if (mode === 'analytics') title = 'Analytics - Ads Architect';
+
     document.title = title;
   }, [view, mode, platform]);
 
@@ -296,6 +298,7 @@ export default function App() {
                 <button onClick={() => {setMode('audit'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'audit' ? 'bg-white text-purple-700 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Auditor</button>
                 <button onClick={() => {setMode('allocator'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'allocator' ? 'bg-white text-green-700 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Allocator</button>
                 <button onClick={() => {setMode('chat'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'chat' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Advisor</button>
+                <button onClick={() => {setMode('analytics'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'analytics' ? 'bg-white text-cyan-700 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Analytics</button>
                 <button onClick={() => {setMode('history'); setStatus(AppStatus.IDLE);}} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'history' ? 'bg-white text-slate-800 shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}>Dashboard</button>
               </div>
               <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-600 transition" title="Log Out">
@@ -309,6 +312,7 @@ export default function App() {
              <button onClick={() => setMode('audit')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'audit' ? 'bg-white shadow' : ''}`}>Audit</button>
              <button onClick={() => setMode('allocator')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'allocator' ? 'bg-white shadow' : ''}`}>Alloc</button>
              <button onClick={() => setMode('chat')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'chat' ? 'bg-white shadow' : ''}`}>Chat</button>
+             <button onClick={() => setMode('analytics')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'analytics' ? 'bg-white shadow' : ''}`}>Data</button>
              <button onClick={() => setMode('history')} className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-lg ${mode === 'history' ? 'bg-white shadow' : ''}`}>Dash</button>
           </div>
         </div>
@@ -437,6 +441,8 @@ export default function App() {
         {mode === 'chat' && <ChatInterface />}
 
         {mode === 'allocator' && <BudgetAllocator />}
+
+        {mode === 'analytics' && <GoogleAdsAnalytics />}
       </main>
     </div>
   );
