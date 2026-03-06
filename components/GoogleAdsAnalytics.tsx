@@ -164,7 +164,7 @@ export default function GoogleAdsAnalytics() {
         clientSecret: formClientSecret.trim(),
         developerToken: formDevToken.trim(),
         customerId: formCustomerId.trim(),
-        loginCustomerId: formLoginCustomerId.trim() || undefined,
+        ...(formLoginCustomerId.trim() ? { loginCustomerId: formLoginCustomerId.trim() } : {}),
         refreshToken: creds?.refreshToken,
         connectedAt: creds?.connectedAt,
       };

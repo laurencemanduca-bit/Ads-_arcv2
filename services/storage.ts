@@ -31,7 +31,8 @@ export const saveCampaignToHistory = (
 
 export const getCampaignHistory = (): GeneratedCampaign[] => {
   const data = localStorage.getItem(CAMPAIGN_KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  try { return JSON.parse(data); } catch { return []; }
 };
 
 export const deleteCampaign = (id: string) => {
@@ -64,7 +65,8 @@ export const saveAuditToHistory = (
 
 export const getAuditHistory = (): AuditReport[] => {
   const data = localStorage.getItem(AUDIT_KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  try { return JSON.parse(data); } catch { return []; }
 };
 
 export const deleteAudit = (id: string) => {

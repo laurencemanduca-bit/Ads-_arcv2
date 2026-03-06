@@ -8,11 +8,11 @@ interface InputFormProps {
   initialData: UserInput;
   onSubmit: (data: UserInput) => void;
   onAutoDiscoverCompetitors: (partialData: Pick<UserInput, 'businessName' | 'productService' | 'location'>) => Promise<string>;
-  isAnalzyingCompetitors: boolean;
+  isAnalyzingCompetitors: boolean;
   platform?: 'google' | 'meta'; // New prop
 }
 
-const InputForm: React.FC<InputFormProps> = ({ initialData, onSubmit, onAutoDiscoverCompetitors, isAnalzyingCompetitors, platform = 'google' }) => {
+const InputForm: React.FC<InputFormProps> = ({ initialData, onSubmit, onAutoDiscoverCompetitors, isAnalyzingCompetitors, platform = 'google' }) => {
   const [formData, setFormData] = useState<UserInput>(initialData);
   const [urlInput, setUrlInput] = useState('');
   const [isAnalyzingUrl, setIsAnalyzingUrl] = useState(false);
@@ -259,10 +259,10 @@ const InputForm: React.FC<InputFormProps> = ({ initialData, onSubmit, onAutoDisc
                     <button
                         type="button"
                         onClick={handleCompetitorDiscovery}
-                        disabled={isAnalzyingCompetitors}
+                        disabled={isAnalyzingCompetitors}
                         className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg flex items-center gap-2 transition border border-slate-300 text-sm font-medium disabled:opacity-50 min-w-[80px] justify-center"
                     >
-                        {isAnalzyingCompetitors ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                        {isAnalyzingCompetitors ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                         <span className="hidden sm:inline">Auto</span>
                     </button>
                     </div>

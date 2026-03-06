@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserInput, GeneratedCampaign, AppStatus, AuditReport, GeneratedMetaCampaign, ClientRecord } from './types';
-import { generateCampaign, generateAudit, generateMetaCampaign } from './services/gemini';
+import { generateCampaign, generateAudit, generateMetaCampaign, fetchCompetitors } from './services/gemini';
 import { subscribeToAuth, logout, getClients, saveGeneratedCampaign, saveGeneratedAudit, updateProjectFile } from './services/firebase';
 import OnboardingWizard from './components/OnboardingWizard';
 import CampaignResults from './components/CampaignResults';
@@ -69,6 +69,7 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [toast, setToast] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
+  const [isAnalyzingCompetitors, setIsAnalyzingCompetitors] = useState(false);
   
   useEffect(() => {
     checkApiKey();
@@ -136,6 +137,16 @@ export default function App() {
   const handleLogout = async () => {
       await logout();
       setView('landing');
+  };
+
+  const handleAutoDiscoverCompetitors = async (partialData: Pick<UserInput, 'businessName' | 'productService' | 'location'>): Promise<string> => {
+    setIsAnalyzingCompetitors(true);
+    try {
+      const result = await fetchCompetitors(partialData.businessName, partialData.productService, partialData.location);
+      return result;
+    } finally {
+      setIsAnalyzingCompetitors(false);
+    }
   };
 
   const handleGenerate = async (data: UserInput) => {
@@ -348,7 +359,7 @@ export default function App() {
                         <button onClick={()=>setPlatform('meta')} className={`px-10 py-4 rounded-3xl text-sm font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-3 ${platform==='meta'?'bg-[#1877F2] text-white shadow-2xl shadow-blue-200 scale-105':'text-slate-400 hover:text-slate-800 hover:bg-slate-50'}`}><Facebook className="w-4 h-4" /> Meta Ads</button>
                     </div>
                 </div>
-                <OnboardingWizard initialData={initialUserInput} onSubmit={handleGenerate} platform={platform} clients={clients} />
+                <OnboardingWizard initialData={initialUserInput} onSubmit={handleGenerate} platform={platform} clients={clients} onAutoDiscoverCompetitors={handleAutoDiscoverCompetitors} isAnalyzingCompetitors={isAnalyzingCompetitors} />
               </div>
             )}
 

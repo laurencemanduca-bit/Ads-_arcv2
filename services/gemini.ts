@@ -929,8 +929,9 @@ export const generateMetaCampaign = async (data: UserInput): Promise<any> => {
   2. If Customer Match is 'Available', you MUST recommend creating a "Customer Match" audience segment in the 'targeting' section of Ad Sets.
   `;
 
-  const isLeadsObjective = (data.primaryGoal || '').toLowerCase().includes('lead') || (data.industry || '').match(/hvac|plumb|roof|legal|mortgage|dental|medical|insurance|contractor/i);
-  const isEcomObjective = (data.primaryGoal || '').toLowerCase().includes('sale') || (data.primaryGoal || '').toLowerCase().includes('ecom');
+  const metaGoal = (data.metaObjective || data.campaignTypePreference || '').toLowerCase();
+  const isLeadsObjective = metaGoal.includes('lead') || (data.industry || '').match(/hvac|plumb|roof|legal|mortgage|dental|medical|insurance|contractor/i);
+  const isEcomObjective = metaGoal.includes('sale') || metaGoal.includes('ecom');
 
   const prompt = `You are a world-class Meta Ads Strategist and Direct Response Copywriter — expert in the 2026 Meta platform (Ogilvy-level strategy meets UGC-native creative execution).
 

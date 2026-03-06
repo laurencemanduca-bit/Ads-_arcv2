@@ -32,7 +32,10 @@ export async function getStoredCredentials(): Promise<GoogleAdsCredentials | nul
 }
 
 export async function saveCredentials(creds: Partial<GoogleAdsCredentials>): Promise<void> {
-  await setDoc(getUserSettingsRef(), creds, { merge: true });
+  const cleanCreds = Object.fromEntries(
+    Object.entries(creds).filter(([_, v]) => v !== undefined)
+  );
+  await setDoc(getUserSettingsRef(), cleanCreds, { merge: true });
 }
 
 export async function clearCredentials(): Promise<void> {
@@ -125,7 +128,7 @@ async function executeQuery(creds: GoogleAdsCredentials, query: string): Promise
       customerId: creds.customerId,
       accessToken,
       developerToken: creds.developerToken,
-      loginCustomerId: creds.loginCustomerId || undefined,
+      ...(creds.loginCustomerId ? { loginCustomerId: creds.loginCustomerId } : {}),
     }),
   });
 

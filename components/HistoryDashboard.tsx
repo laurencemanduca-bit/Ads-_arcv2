@@ -163,8 +163,7 @@ const InternalDashboard: React.FC<HistoryDashboardProps> = ({ onLoadCampaign, on
       
       try {
           await deleteClient(id);
-          // Cleanup files (fire & forget for speed)
-          clientFiles.forEach(f => deleteFile(f.id, f.storagePath));
+          await Promise.all(clientFiles.map(f => deleteFile(f.id, f.storagePath)));
           showToast("Client Deleted", 'success');
       } catch (err) {
           console.error("Failed to delete client:", err);

@@ -14,7 +14,7 @@ export interface ProjectFile {
   folderId?: string;
   size: string;
   status: 'Draft' | 'Active' | 'Paused';
-  type: 'google' | 'meta' | 'audit' | 'asset_image' | 'asset_video' | 'campaign_google' | 'campaign_meta' | 'audit' | 'document' | 'report_pdf'; 
+  type: 'google' | 'meta' | 'audit' | 'asset_image' | 'asset_video' | 'campaign_google' | 'campaign_meta' | 'document' | 'report_pdf';
   data: any;
   createdAt: number;
   downloadUrl?: string;

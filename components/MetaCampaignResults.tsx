@@ -447,6 +447,35 @@ const MetaCampaignResults: React.FC<MetaCampaignResultsProps> = ({ campaign, onU
             {/* STRATEGY TAB */}
             {(activeTab === 'strategy' || isPrinting) && (
                 <div className="space-y-8 animate-fade-in print-page-break">
+                    {/* Campaign Info Bar */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-wrap gap-4">
+                        {campaign.campaignName && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Campaign</span>
+                                <span className="text-sm font-bold text-slate-800">{campaign.campaignName}</span>
+                            </div>
+                        )}
+                        {campaign.objective && (
+                            <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
+                                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Objective</span>
+                                <span className="text-sm font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">{campaign.objective}</span>
+                            </div>
+                        )}
+                        {campaign.buyingType && (
+                            <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
+                                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Buying Type</span>
+                                <span className="text-sm font-medium text-slate-700">{campaign.buyingType}</span>
+                            </div>
+                        )}
+                        {campaign.specialAdCategories && campaign.specialAdCategories !== 'None' && (
+                            <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
+                                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                                <span className="text-[10px] font-bold uppercase text-amber-600 tracking-wider">Special Category</span>
+                                <span className="text-sm font-medium text-amber-700">{campaign.specialAdCategories}</span>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Performance 5 Score */}
                     {campaign.performance5Score && (
                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">

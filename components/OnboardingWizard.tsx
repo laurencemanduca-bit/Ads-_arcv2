@@ -8,7 +8,7 @@ interface OnboardingWizardProps {
   initialData: UserInput;
   onSubmit: (data: UserInput) => void;
   onAutoDiscoverCompetitors?: (partialData: Pick<UserInput, 'businessName' | 'productService' | 'location'>) => Promise<string>;
-  isAnalzyingCompetitors?: boolean;
+  isAnalyzingCompetitors?: boolean;
   platform?: 'google' | 'meta';
   clients?: ClientRecord[];
 }
@@ -41,7 +41,7 @@ const META_CAMPAIGN_OBJECTIVES = [
     { id: 'App', name: 'App Promotion', icon: Smartphone, description: 'Drive mobile app installs.', advice: 'Only for app-based businesses.' },
 ];
 
-const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData, onSubmit, onAutoDiscoverCompetitors, isAnalzyingCompetitors, platform = 'google', clients = [] }) => {
+const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData, onSubmit, onAutoDiscoverCompetitors, isAnalyzingCompetitors, platform = 'google', clients = [] }) => {
   const [formData, setFormData] = useState<UserInput>({
       ...initialData,
       budgetPreference: initialData.budgetPreference || 'fixed',
@@ -382,8 +382,8 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData, onSubm
                     <div className="flex gap-2">
                         <input name="competitors" value={formData.competitors} onChange={handleChange} className="input-elite flex-1" placeholder="e.g. Bob's Plumbing" />
                         {onAutoDiscoverCompetitors && (
-                            <button type="button" onClick={handleCompetitorDiscovery} disabled={isAnalzyingCompetitors} className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 rounded-xl border border-slate-200 transition">
-                                {isAnalzyingCompetitors ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                            <button type="button" onClick={handleCompetitorDiscovery} disabled={isAnalyzingCompetitors} className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 rounded-xl border border-slate-200 transition">
+                                {isAnalyzingCompetitors ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                             </button>
                         )}
                     </div>
@@ -502,7 +502,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData, onSubm
                             return (
                                 <div 
                                     key={type.id}
-                                    onClick={() => setFormData(prev => ({ ...prev, campaignTypePreference: type.id }))}
+                                    onClick={() => setFormData(prev => ({ ...prev, campaignTypePreference: type.id, ...(isMeta ? { metaObjective: type.id } : {}) }))}
                                     className={`cursor-pointer rounded-xl p-4 border-2 transition-all duration-200 relative overflow-hidden group hover:shadow-md ${isSelected ? (isMeta ? 'border-blue-600 bg-white shadow-md' : 'border-google-blue bg-white shadow-md') : 'border-slate-200 bg-white hover:border-blue-300'}`}
                                 >
                                     {isSelected && (
