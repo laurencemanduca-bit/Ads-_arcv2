@@ -111,6 +111,9 @@ export default function GoogleAdsAnalytics() {
     }
   };
 
+  // Consistent redirect URI — always use origin only (no pathname) to avoid mismatch
+  const getRedirectUri = () => window.location.origin;
+
   const handleOAuthCallback = async () => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
@@ -127,9 +130,8 @@ export default function GoogleAdsAnalytics() {
           return;
         }
 
-        const redirectUri = window.location.origin + window.location.pathname;
         const { refreshToken } = await exchangeCodeForTokens(
-          code, stored.clientId, stored.clientSecret, redirectUri
+          code, stored.clientId, stored.clientSecret, getRedirectUri()
         );
 
         await saveCredentials({ refreshToken, connectedAt: Date.now() });
@@ -185,8 +187,7 @@ export default function GoogleAdsAnalytics() {
       setError('Save your API credentials first.');
       return;
     }
-    const redirectUri = window.location.origin + window.location.pathname;
-    window.location.href = buildOAuthUrl(creds.clientId, redirectUri);
+    window.location.href = buildOAuthUrl(creds.clientId, getRedirectUri());
   };
 
   const handleDisconnect = async () => {
@@ -314,7 +315,7 @@ export default function GoogleAdsAnalytics() {
                     <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0">3</span>
                     <span>
                       Add this as an <strong>Authorized redirect URI</strong>:
-                      <code className="bg-slate-200 px-2 py-0.5 rounded text-xs ml-1 select-all">{window.location.origin + window.location.pathname}</code>
+                      <code className="bg-slate-200 px-2 py-0.5 rounded text-xs ml-1 select-all">{window.location.origin}</code>
                     </span>
                   </li>
                   <li className="flex gap-3">
